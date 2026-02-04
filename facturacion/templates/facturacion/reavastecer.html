@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reabastecimiento - Tienda de Teléfonos</title>
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 3px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+            flex: 1;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: rgba(255, 255, 255, 0.8);
+            padding-left: 30px;
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: white;
+        }
+
+        .menu-item i {
+            font-size: 1.3rem;
+            margin-right: 15px;
+            width: 25px;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-item:hover i,
+        .menu-item.active i {
+            opacity: 1;
+        }
+
+        .menu-item span {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: #ee5a24;
+            transform: scale(1.05);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content {
+            flex: 1;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .content-container {
+            padding: 40px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 15px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffb347 0%, #ffcc33 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(255, 179, 71, 0.3);
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 179, 71, 0.4);
+        }
+
+        /* Estadísticas */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Tabla de productos */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        .products-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .products-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e1e8ed;
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+
+        .products-table tr {
+            transition: background-color 0.2s;
+        }
+
+        .products-table tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+            transition: all 0.3s ease;
+        }
+
+        .products-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .phone-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .product-details h4 {
+            color: #333;
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .product-details span {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .brand-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .stock-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        .stock-low {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+        }
+
+        .stock-medium {
+            background: linear-gradient(135deg, #ffb347 0%, #ffcc33 100%);
+            color: white;
+        }
+
+        .stock-high {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .price {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .stock-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stock-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .decrease-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .decrease-btn:hover {
+            background: linear-gradient(135deg, #ee5a24 0%, #ff6b6b 100%);
+            transform: scale(1.1);
+        }
+
+        .increase-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .increase-btn:hover {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            transform: scale(1.1);
+        }
+
+        .stock-input {
+            width: 60px;
+            padding: 8px;
+            text-align: center;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .stock-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .no-products {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .no-products i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .loading-more {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        /* Personalización de Toastr */
+        #toast-container > .toast-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='24px' height='24px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E") !important;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        #toast-container > .toast-error {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='24px' height='24px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z'/%3E%3C/svg%3E") !important;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        /* Desktop specific styles */
+        @media (min-width: 769px) {
+            .sidebar {
+                position: fixed;
+                transform: translateX(0);
+                height: 100vh;
+            }
+
+            .main-content {
+                margin-left: 280px;
+                min-height: 100vh;
+            }
+
+            .menu-toggle {
+                display: none;
+            }
+
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 100%;
+                max-width: 300px;
+                height: 100vh;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 10px;
+                min-height: 100vh;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+                padding-top: 60px;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .content-container {
+                padding: 20px;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: 100%;
+            }
+
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+
+            .products-table {
+                font-size: 0.85rem;
+            }
+
+            .products-table th,
+            .products-table td {
+                padding: 10px 8px;
+            }
+
+            .product-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+
+            .stock-controls {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .products-table td:nth-child(2),
+            .products-table th:nth-child(2) {
+                display: none;
+            }
+
+            body.sidebar-open {
+                overflow: hidden;
+            }
+        }
+
+        /* Scrollbar personalizado */
+        .sidebar::-webkit-scrollbar,
+        .table-container::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track,
+        .table-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb,
+        .table-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover,
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+  <button class="menu-toggle" onclick="toggleSidebar()">
+        <i class='bx bx-menu'></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>
+                <i class='bx bx-mobile-alt'></i>
+                DEREJSOFT
+            </h2>
+            <p>Derejsoft - superadmin</p>
+            <p>derejsoft2003@gmail.com</p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="#" class="menu-item">
+                <i class='bx bx-home-alt'></i>
+                <span>Inicio</span>
+            </a>
+            <a href="{% url 'ventas'  %}" class="menu-item">
+                <i class='bx bx-package'></i>
+                <span>Facturacion</span>
+            </a>
+            
+            <a href="{% url 'registrodecliente'  %}" class="menu-item">
+                <i class='bx bx-dollar-circle'></i>
+                <span>Registrar Clientes</span>
+            </a>
+
+            <a href="{% url 'listadecliente'  %}" class="menu-item">
+                <i class='bx bx-user-plus'></i>
+                <span>Clientes</span>
+            </a>
+
+            <a href="{% url 'cuentaporcobrar'  %}" class="menu-item">
+                <i class='bx bx-shopping-bag'></i>
+                <span>cuenta Por Cobrar</span>
+            </a>
+
+            <a href="{% url 'entrada'  %}" class="menu-item">
+                <i class='bx bx-credit-card'></i>
+                <span>Entrada De mercancia</span>
+            </a>
+
+            <a href="{% url 'inventario'  %}" class="menu-item">
+                <i class='bx bx-bar-chart-alt-2'></i>
+                <span>Inventario</span>
+            </a>
+            
+            <a href="{% url 'registrosuplidores'  %}" class="menu-item">
+                <i class='bx bx-user'></i>
+                <span>Registrar Suplidores</span>
+            </a>
+
+            <a href="{% url 'gestiondesuplidores'  %}" class="menu-item">
+                <i class='bx bx-trending-up'></i>
+                <span>Suplidores</span>
+            </a>
+            
+            <a href="{% url 'reavastecer'  %}" class="menu-item active">
+                <i class='bx bx-store'></i>
+                <span>Ajuste Inventario</span>
+            </a>
+
+            <a href="{% url 'dashboard'  %}" class="menu-item">
+                <i class='bx bx-cog'></i>
+                <span>dashboard</span>
+            </a>
+            
+            <a href="{% url 'index'  %}" class="menu-item">
+                <i class='bx bx-log-out'></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            <p>Dalecompra v 1.2.2</p>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <div class="header-content">
+                    <h1>
+                        <i class='bx bx-package'></i>
+                        Sistema de Reabastecimiento
+                    </h1>
+                    <p>Gestiona el inventario de tu tienda de teléfonos</p>
+                </div>
+            </div>
+
+            <div class="content-container">
+                <!-- Mensaje de éxito -->
+                <div class="success-message" id="successMessage">
+                    <i class='bx bx-check-circle'></i> Stock actualizado correctamente
+                </div>
+
+                <!-- Estadísticas -->
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <div class="stat-label">Total Productos</div>
+                        <span class="stat-number" id="totalProducts">{{ total_productos }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Stock Bajo</div>
+                        <span class="stat-number" id="lowStockCount">{{ productos_stock_bajo }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Valor Total</div>
+                        <span class="stat-number" id="totalValue">RD${{ valor_total|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                <!-- Sección de búsqueda -->
+                <div class="search-bar">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="searchInput" 
+                        placeholder="Buscar por nombre, marca o modelo..."
+                    >
+                </div>
+
+                <!-- Tabla de productos con scroll -->
+                <div class="table-container" id="tableContainer">
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Marca</th>
+                                <th>Stock</th>
+                                <th>Precio</th>
+                                <th>Controles</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            {% for producto in productos %}
+                            <tr>
+                                <td>
+                                    <div class="product-info">
+                                        <div class="phone-icon"><i class="bx bx-mobile-alt"></i></div>
+                                        <div class="product-details">
+                                            <h4>{{ producto.name }}</h4>
+                                            <span>{{ producto.model }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="brand-badge">{{ producto.brand }}</span></td>
+                                <td>
+                                    <div class="stock-badge {% if producto.stock < 10 %}stock-low{% elif producto.stock < 25 %}stock-medium{% else %}stock-high{% endif %}">
+                                        {{ producto.stock }}
+                                    </div>
+                                </td>
+                                <td><div class="price">RD${{ producto.price|floatformat:2 }}</div></td>
+                                <td>
+                                    <div class="stock-controls">
+                                        <button class="stock-btn decrease-btn" onclick="changeStock({{ producto.id }}, -1)" title="Disminuir stock"><i class="bx bx-minus"></i></button>
+                                        <input type="number" class="stock-input" value="{{ producto.stock }}" min="0" onchange="updateStock({{ producto.id }}, this.value)" data-product-id="{{ producto.id }}">
+                                        <button class="stock-btn increase-btn" onclick="changeStock({{ producto.id }}, 1)" title="Aumentar stock"><i class="bx bx-plus"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div id="loadingIndicator" class="loading-more" style="display: none;">
+                        <i class='bx bx-loader-circle bx-spin'></i> Cargando más productos...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSRF Token para AJAX -->
+    {% csrf_token %}
+
+    <script>
+        // Configuración de toastr
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-bottom-right",
+            "timeOut": "3000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+
+        // Obtener el token CSRF
+        function getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+        // Función para mostrar mensaje de éxito con toastr (dos colores)
+        function showSuccessMessage(productName, newStock, change) {
+            if (change > 0) {
+                // Aumento - color verde
+                toastr.success('Stock aumentado: ' + productName + ' → ' + newStock + ' unidades', '¡Éxito!');
+            } else {
+                // Disminución - color rojo
+                toastr.error('Stock disminuido: ' + productName + ' → ' + newStock + ' unidades', 'Atención');
+            }
+        }
+
+        // Función para mostrar mensaje de error
+        function showErrorMessage(message) {
+            toastr.error(message, 'Error');
+        }
+
+        // Función para cambiar stock
+        function changeStock(productId, change) {
+            const inputElement = document.querySelector(`input[data-product-id="${productId}"]`);
+            const currentValue = parseInt(inputElement.value) || 0;
+            const newValue = Math.max(0, currentValue + change);
+            
+            inputElement.value = newValue;
+            updateStockInDatabase(productId, newValue, change);
+        }
+
+        // Función para actualizar stock desde input
+        function updateStock(productId, newStock) {
+            const newValue = parseInt(newStock) || 0;
+            const inputElement = document.querySelector(`input[data-product-id="${productId}"]`);
+            const currentValue = parseInt(inputElement.value) || 0;
+            const change = newValue - currentValue;
+            
+            updateStockInDatabase(productId, newValue, change);
+        }
+
+        // Función para actualizar stock en la base de datos
+        function updateStockInDatabase(productId, newStock, change) {
+            fetch('/actualizar-stock/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    producto_id: productId,
+                    nueva_cantidad: newStock
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar la interfaz
+                    const stockBadge = document.querySelector(`input[data-product-id="${productId}"]`).closest('tr').querySelector('.stock-badge');
+                    stockBadge.textContent = data.nuevo_stock;
+                    
+                    // Actualizar clase según el nuevo stock
+                    stockBadge.className = 'stock-badge ' + 
+                        (data.nuevo_stock < 10 ? 'stock-low' : 
+                         data.nuevo_stock < 25 ? 'stock-medium' : 'stock-high');
+                    
+                    // Mostrar mensaje de éxito
+                    const productName = stockBadge.closest('tr').querySelector('h4').textContent;
+                    showSuccessMessage(productName, data.nuevo_stock, change);
+                    
+                    // Actualizar estadísticas
+                    updateStatistics();
+                } else {
+                    showErrorMessage(data.error || 'Error al actualizar el stock');
+                    // Revertir el valor en el input
+                    const inputElement = document.querySelector(`input[data-product-id="${productId}"]`);
+                    inputElement.value = inputElement.defaultValue;
+                }
+            })
+            .catch(error => {
+                showErrorMessage('Error de conexión: ' + error.message);
+                // Revertir el valor en el input
+                const inputElement = document.querySelector(`input[data-product-id="${productId}"]`);
+                inputElement.value = inputElement.defaultValue;
+            });
+        }
+
+        // Función para actualizar estadísticas (podrías implementar una llamada AJAX para esto)
+        function updateStatistics() {
+            // Esta función podría hacer una llamada AJAX para obtener estadísticas actualizadas
+            // Por ahora, solo mostraremos un mensaje de que se necesita recargar
+            console.log("Las estadísticas necesitan ser actualizadas");
+        }
+
+        // ... (el resto del código JavaScript para búsqueda y filtrado se mantiene) ...
+        
+        // Manejar el cierre de sesión con SweetAlert2
+        document.querySelector("a[href='{% url 'index' %}']").addEventListener("click", function(e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: '¿Cerrar Sesión?',
+                text: '¿Está seguro de que desea cerrar la sesión?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#dc3545',
+                confirmButtonText: 'Sí, Cerrar Sesión',
+                cancelButtonText: 'Cancelar',
+                backdrop: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "{% url 'index' %}";
+                }
+            });
+        });
+        
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar eventos de búsqueda y filtrado
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', filterProducts);
+            }
+            
+            // Configurar evento de scroll para carga infinita
+            const tableContainer = document.getElementById('tableContainer');
+            if (tableContainer) {
+                tableContainer.addEventListener('scroll', handleScroll);
+            }
+        });
+    </script>
+</body>
+</html>

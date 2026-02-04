@@ -1,0 +1,504 @@
+{% load custom_filters %}
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factura de Consumidores Finales</title>
+    <link rel="shortcut icon" href="{% static 'image/favicon2.ico' %}" type="image/x-icon">
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            font-size: 13px;
+            background-color: #f5f5f5;
+        }
+        
+        .invoice-container {
+            width: 21cm; /* Tamaño A4 */
+            height: 29.7cm;
+            padding: 0.7cm;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Encabezado */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 2px;
+            align-items: flex-end;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 70px;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border: 1px solid #999;
+            font-size: 14px;
+        }
+        
+        .company-info {
+            text-align: right;
+            font-size: 13px;
+            line-height: 1.2;
+        }
+        
+        /* Título de la factura */
+        .invoice-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 8px 0;
+            text-decoration: underline;
+        }
+        
+        /* Detalles de la factura */
+        .invoice-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+        
+        .invoice-details div {
+            display: flex;
+        }
+        
+        .invoice-details strong {
+            min-width: 90px;
+            display: inline-block;
+        }
+        
+        /* Tabla de productos */
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 12px;
+            table-layout: auto; /* Cambiado a auto para mejor ajuste */
+        }
+        
+        .invoice-table th, .invoice-table td {
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: left;
+            word-wrap: break-word; /* Permite romper palabras largas */
+            white-space: normal; /* Permite múltiples líneas */
+        }
+        
+        .invoice-table th {
+            background-color: #f0f0f0;
+            font-size: 12px;
+            white-space: nowrap; /* Títulos en una sola línea */
+        }
+        
+        /* Columnas específicas */
+        .col-codigo {
+            width: 10%;
+            min-width: 80px;
+        }
+        
+        .col-cantidad {
+            width: 7%;
+            min-width: 60px;
+        }
+        
+        .col-descripcion {
+            width: 30%;
+            min-width: 150px;
+        }
+        
+        .col-chasis {
+            width: 18%;
+            min-width: 120px;
+            word-break: break-all; /* Rompe cualquier palabra larga */
+        }
+        
+        .col-precio {
+            width: 15%;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        .col-importe {
+            width: 20%;
+            min-width: 90px;
+            text-align: right;
+        }
+        
+        /* Totales */
+        .totals {
+            width: 100%;
+            margin-bottom: 0;
+            font-size: 13px;
+            margin: 0;
+        }
+        
+        .totals div {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+        }
+        
+        /* Nota */
+        .note {
+            margin: 0;
+            padding: 4px 8px;
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+            font-size: 13px;
+            margin-bottom: 0;
+        }
+
+        /* Información de crédito */
+        .credit-info {
+            margin: 12px 0;
+            padding: 8px;
+            border: 1px solid #000;
+            font-size: 12px;
+        }
+        
+        .credit-info h3 {
+            margin-bottom: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .credit-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+        }
+        
+        /* Firmas - Posicionadas al final */
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+        }
+        
+        .signature-box {
+            width: 220px;
+            border-top: 1px solid #000;
+            padding-top: 4px;
+            text-align: center;
+            font-size: 13px;
+        }
+        
+        /* Pie de página */
+        .footer-note {
+            text-align: center;
+            margin-top: 15px;
+            font-style: italic;
+            font-size: 13px;
+        }
+        
+        /* Controles para añadir productos */
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        button {
+            padding: 8px 15px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin: 0 5px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        button:hover {
+            background-color: #1a252f;
+        }
+        
+        /* Estilos para impresión */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .invoice-container {
+                width: 100%;
+                height: auto;
+                padding: 0.5cm;
+                box-shadow: none;
+            }
+            
+            .controls {
+                display: none;
+            }
+            
+            .invoice-table {
+                table-layout: fixed;
+            }
+            
+            .col-chasis {
+                font-size: 11px; /* Tamaño más pequeño para impresión */
+            }
+        }
+
+        .header img{
+            width: 120px;
+            height: auto;
+            transform: translateY(-20px);
+        }
+        
+        /* Asegurar que el contenido no se desborde */
+        .content-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Estilos para detalles del producto */
+        .product-details {
+            font-size: 11px;
+            color: #555;
+            line-height: 1.3;
+        }
+        
+        .product-details small {
+            display: block;
+            margin-top: 1px;
+        }
+        
+        /* Para texto largo en chasis */
+        .chasis-text {
+            font-size: 11px;
+            line-height: 1.2;
+            max-height: 40px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="content-wrapper">
+            <div class="header">
+                <img src="{% static 'image/logom.png' %}" alt="Logo">
+                <div class="company-info">
+                    <div><strong>DDMAX MOTO IMPORT, SRL</strong></div>
+                    <div>RNC: 1-33-56904-3</div>
+                    <div>Tel: 809 656-3374</div>
+                    <div>Direccion: C/Principal, #35 Castañuelas</div>
+                    <div>Te monta con menos </div>
+                </div>
+            </div>
+            
+            <div class="invoice-title">FACTURA DE CONSUMIDORES FINALES</div>
+            
+            <div class="invoice-details">
+                <div><strong>Fecha:</strong> {{ now }}</div>
+                <div><strong>No.:</strong> {{ venta.numero_factura }}</div>
+                {% if venta.cliente.apodo %}
+                <div><strong>Apodo:</strong> {{ venta.cliente.apodo }}</div>
+                {% endif %}
+                <div><strong>NCF:</strong> {{ venta.ncf|default:"" }}</div>
+                <div><strong>Cliente:</strong> {{ venta.cliente_nombre }}</div>
+                <div><strong>RNC/Céd:</strong> {{ venta.cliente_documento|default:"000-0000000-0" }}</div>
+                <div><strong>Tipo:</strong> {{ venta.get_tipo_venta_display }}</div>
+                {% if venta.cliente.telefono %}
+                <div><strong>TEL:</strong> {{ venta.cliente.telefono }}</div>
+                {% endif %}
+                {% if venta.cliente.direccion %}
+                <div><strong>Dirección:</strong> {{ venta.cliente.direccion }}</div>
+                {% endif %}
+                {% if venta.tipo_venta == 'credito' and venta.fecha_vencimiento %}
+                <div><strong>Válido Hasta:</strong> {{ venta.fecha_vencimiento|date:"d/m/Y" }}</div>
+                {% endif %}
+            </div>
+            
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+
+                        <th class="col-codigo"width="15%">Código</th>
+                        <th class="col-cantidad"width="10%">Cantidad</th>
+                        <th class="col-descripcion"width="25%">Descripción</th>
+                        <th class="col-chasis"width="25%">Número/Chasi</th>
+                        <th class="col-precio"width="15%">Precio</th>
+                        <th class="col-importe"width="15%">Importe</th>
+                    </tr>
+                </thead>
+                <tbody id="productos">
+                    {% for detalle in detalles %}
+                    <tr>
+                        <td class="col-codigo">{{ detalle.producto.codigo_producto }}</td>
+                        <td class="col-cantidad">{{ detalle.cantidad }}</td>
+                        <td class="col-descripcion">
+                            <div><strong>{{ detalle.producto.nombre_producto }}</strong></div>
+                            <div class="product-details">
+                                {% if detalle.producto.modelo %}
+                                <small><strong>Modelo:</strong> {{ detalle.producto.modelo }}</small>
+                                {% endif %}
+                                {% if detalle.producto.marca %}
+                                <small><strong>Marca:</strong> {{ detalle.producto.get_marca_display }}</small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="col-chasis">
+                            {% if detalle.producto.numero_maquina %}
+                                <div class="chasis-text">{{ detalle.producto.numero_maquina }}</div>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td class="col-precio">{{ detalle.precio_unitario|currency_format }}</td>
+                        <td class="col-importe">{{ detalle.subtotal|currency_format }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="totals">
+                <div>
+                    <strong>Artículos:</strong>
+                    <span>{{ total_articulos }}</span>
+                </div>
+                <div>
+                    <strong>Sub-Total $:</strong>
+                    <span>{{ venta.subtotal|currency_format }}</span>
+                </div>
+                <div>
+                    <strong>Descuento $:</strong>
+                    <span>{{ venta.descuento_monto|currency_format }}</span>
+                </div>
+                <div>
+                    <strong>Total $:</strong>
+                    <span>{{ venta.total_a_pagar|currency_format }}</span>
+                </div>
+            </div>
+            
+            <div class="note">
+                <p><strong>Nota:</strong>{{venta.nota|default:"" }}. </p>
+                 <p><strong>Tipo Pago:</strong>{{ venta.get_metodo_pago_display }}.</p>
+            </div>
+            
+         {% if venta.tipo_venta == 'credito' and venta.es_financiada %}
+<div class="credit-info">
+    <h3>PRECIO A CREDITO = {{ venta.total_a_pagar|currency_format}}</h3>
+    <div class="credit-details">
+        <div><strong>No. Prest.:</strong> {{ venta.numero_factura }}</div>
+        <div><strong>Inicial:</strong> ${{ venta.montoinicial|currency_format}}</div>
+        <div><strong>Monto a Financiar:</strong> ${{ venta.monto_financiado|currency_format }}</div>
+        <div><strong>Plazo:</strong> {{ venta.plazo_meses|intcomma }} Meses</div>
+        <div><strong>Interés Mensual:</strong> ${{ venta.interes_mensual|currency_format}}</div>
+        <div><strong>Forma Pago:</strong> Mensual</div>
+        <div><strong>Balance:</strong> ${{ venta.total_con_interes|currency_format }}</div>
+        <div><strong>Adicional:</strong> -</div>
+        <div><strong>Cuota Mensual:</strong> ${{ venta.cuota_mensual|currency_format}}</div>
+    </div>
+</div>
+{% endif %}
+            <div class="signatures">
+                <div class="signature-box">
+                    Entregado Por: {{ venta.vendedor.get_full_name|default:venta.vendedor.username }}
+                </div>
+                <div class="signature-box">
+                    Recibido Por: {{ venta.cliente_nombre }}
+                </div>
+            </div>
+            
+            <div class="footer-note">
+                favor revisar la mercancía
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="window.print()">Imprimir Factura</button>
+            <button onclick="window.history.back()">Volver a Ventas</button>
+        </div>
+    </div>
+
+    <script>
+        // Función para añadir productos a la factura
+        function addProduct() {
+            const tbody = document.getElementById('productos');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" placeholder="Código" style="width: 95%"></td>
+                <td><input type="number" placeholder="Cant" value="1" style="width: 90%"></td>
+                <td><input type="text" placeholder="Descripción" style="width: 95%"></td>
+                <td><input type="text" placeholder="Número/Chasi" style="width: 95%"></td>
+                <td><input type="number" placeholder="Precio" style="width: 90%"></td>
+                <td>$0.00</td>
+            `;
+            tbody.appendChild(newRow);
+            
+            // Añadir event listeners para cálculo automático
+            const inputs = newRow.querySelectorAll('input');
+            inputs[1].addEventListener('input', calculateRowTotal);
+            inputs[4].addEventListener('input', calculateRowTotal);
+            
+            // Recalcular totales
+            calculateTotals();
+        }
+        
+        // Función para calcular el total de una fila
+        function calculateRowTotal() {
+            const row = this.parentElement.parentElement;
+            const cantidad = row.querySelector('input:nth-child(2)').value || 0;
+            const precio = row.querySelector('input:nth-child(5)').value || 0;
+            const importe = cantidad * precio;
+            
+            row.querySelector('td:last-child').textContent = `$${importe.toLocaleString('es-DO', {minimumFractionDigits: 2})}`;
+            
+            // Recalcular totales
+            calculateTotals();
+        }
+        
+        // Función para calcular los totales generales
+        function calculateTotals() {
+            let totalArticulos = 0;
+            let subtotal = 0;
+            
+            document.querySelectorAll('#productos tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const cantidad = cells[1].querySelector('input') ? 
+                                 parseInt(cells[1].querySelector('input').value || 0) : 
+                                 parseInt(cells[1].textContent);
+                const importe = parseFloat(cells[5].textContent.replace('$', '').replace(/,/g, '') || 0);
+                
+                totalArticulos += cantidad;
+                subtotal += importe;
+            });
+            
+            // Actualizar totales
+            document.querySelector('.totals div:first-child span').textContent = totalArticulos;
+            document.querySelector('.totals div:nth-child(2) span').textContent = `$${subtotal.toLocaleString('es-DO', {minimumFractionDigits: 2})}`;
+            document.querySelector('.totals div:last-child span').textContent = `$${subtotal.toLocaleString('es-DO', {minimumFractionDigits: 2})}`;
+        }
+        
+        // Inicializar event listeners para inputs existentes
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('#productos input').forEach(input => {
+                if (input.type === 'number') {
+                    input.addEventListener('input', calculateRowTotal);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

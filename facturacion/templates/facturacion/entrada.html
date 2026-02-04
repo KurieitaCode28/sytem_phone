@@ -1,0 +1,1538 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrada de Productos</title>
+    <link rel="shortcut icon" href="{% static 'image/favicon2.ico' %}" type="image/x-icon">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Toastr -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 3px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+            flex: 1;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: rgba(255, 255, 255, 0.8);
+            padding-left: 30px;
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: white;
+        }
+
+        .menu-item i {
+            font-size: 1.3rem;
+            margin-right: 15px;
+            width: 25px;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-item:hover i,
+        .menu-item.active i {
+            opacity: 1;
+        }
+
+        .menu-item span {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: #ee5a24;
+            transform: scale(1.05);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group.half-width {
+            grid-column: span 1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-input:valid {
+            border-color: #28a745;
+        }
+
+        .form-input:invalid:not(:placeholder-shown) {
+            border-color: #dc3545;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+            cursor: pointer;
+        }
+
+        .currency-input {
+            position: relative;
+        }
+
+        .currency-input::before {
+            content: 'RD$';
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);            color: #666;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .currency-input .form-input {
+            padding-left: 50px;
+        }
+
+        .percentage-input {
+            position: relative;
+        }
+
+        .percentage-input::after {
+            content: '%';
+            position: absolute;
+            right: 45px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .calculated-field {
+            background: #e8f5e8 !important;
+            border-color: #28a745 !important;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 5px solid #ff6b6b;
+        }
+
+        .info-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Mensajes de Django */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #721c24;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Estilos para el autocompletado */
+        #suggestionsContainer {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        #suggestionsContainer div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        #suggestionsContainer div:hover {
+            background-color: #f8f9fa !important;
+        }
+
+        #suggestionsContainer div:last-child {
+            border-bottom: none;
+        }
+
+        /* Desktop specific styles */
+        @media (min-width: 769px) {
+            .sidebar {
+                position: fixed;
+                transform: translateX(0);
+                height: 100vh;
+            }
+
+            .main-content {
+                margin-left: 280px;
+                min-height: 100vh;
+            }
+
+            .menu-toggle {
+                display: none;
+            }
+
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 100%;
+                max-width: 300px;
+                height: 100vh;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 10px;
+                min-height: 100vh;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+                padding-top: 60px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            body.sidebar-open {
+                overflow: hidden;
+            }
+
+            .add-product-btn {
+                position: static;
+                margin-bottom: 20px;
+                width: 100%;
+            }
+        }
+
+        /* Scrollbar personalizado */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Toggle Button -->
+    <button class="menu-toggle" onclick="toggleSidebar()">
+        <i class='bx bx-menu'></i>
+    </button>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+    <!-- Loading Overlay -->
+    <div class="loading" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p>Cargando clientes...</p>
+    </div>
+    
+<!-- Sidebar Navigation -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h2>
+            <i class="fas fa-motorcycle"></i>
+            DDMAX
+        <p>Usuario: {{ user.username }}</p>
+        <p>{{ user.email }}</p>
+    </div>
+    <div class="sidebar-menu">
+        <a href="#" class="menu-item">
+            <i class='bx bx-home-alt'></i>
+            <span>Inicio</span>
+        </a>
+        <a href="{% url 'ventas' %}" class="menu-item">
+            <i class='bx bx-receipt'></i>
+            <span>Facturación</span>
+        </a>
+        <a href="{% url 'registrodecliente' %}" class="menu-item">
+            <i class='bx bx-user-plus'></i>
+            <span>Registrar Cliente</span>
+        </a>
+        <a href="{% url 'listadecliente' %}" class="menu-item">
+            <i class='bx bx-group'></i>
+            <span>Clientes</span>
+        </a>
+        <a href="{% url 'entrada' %}" class="menu-item active">
+            <i class='bx bx-package'></i>
+            <span>Entrada Mercancía</span>
+        </a>
+        <a href="{% url 'cuentaporcobrar' %}" class="menu-item">
+            <i class='bx bx-money'></i>
+            <span>Cuenta por Cobrar</span>
+        </a>
+        <a href="{% url 'inventario' %}" class="menu-item">
+            <i class='bx bx-archive'></i>
+            <span>Inventario</span>
+        </a>
+        <a href="{% url 'registrosuplidores' %}" class="menu-item">
+            <i class='bx bx-building'></i>
+            <span>Registrar Suplidores</span>
+        </a>
+        <a href="{% url 'gestiondesuplidores' %}" class="menu-item">
+            <i class='bx bx-buildings'></i>
+            <span>Suplidores</span>
+        </a>
+        <a href="{% url 'devoluciones' %}" class="menu-item">
+            <i class='bx bx-undo'></i>
+            <span>Devoluciones</span>
+        </a>
+        <a href="{% url 'roles' %}" class="menu-item">
+            <i class='bx bx-user-check'></i>
+            <span>Roles</span>
+        </a>
+        <a href="{% url 'anular' %}" class="menu-item">
+            <i class='bx bx-x-circle'></i>
+            <span>Anular Factura</span>
+        </a>
+        <a href="{% url 'reimprimirfactura' %}" class="menu-item">
+            <i class='bx bx-printer'></i>
+            <span>Reimprimir</span>
+        </a>
+
+          <a href="{% url 'cuentasAtrasada' %}" class="menu-item active">
+           <i class='bx bx-time-five'></i>
+            <span>Cuenta Atrasadas</span>
+        </a>
+
+
+         <a href="{% url 'cuentasAtrasada' %}" class="menu-item ">
+           <i class='bx bx-time-five'></i>
+            <span>Cuenta Atrasadas</span>
+        </a>
+
+        <a href="{% url 'dashboard' %}" class="menu-item">
+            <i class='bx bx-grid-alt'></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="{% url 'index' %}" class="menu-item">
+            <i class='bx bx-log-out'></i>
+            <span>Cerrar Sesión</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <p>Derejsoft V1.0.0</p>
+    </div>
+</nav>
+
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>
+                    <i class='bx bx-box'></i>
+                    Entrada de Productos
+                </h1>
+                <p>Sistema de Registro de Inventario DDMAX Moto Import</p>
+            </div>
+
+            <div class="form-container">
+                <!-- Mensajes de Django -->
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="success-message" id="successMessage">
+                    <i class='bx bx-check-circle'></i>
+                    Producto registrado exitosamente en el inventario
+                </div>
+
+                <div class="info-card">
+                    <h3>
+                        <i class='bx bx-info-circle'></i>
+                        Información Importante
+                    </h3>
+                    <p>Complete todos los campos requeridos para registrar correctamente la entrada de productos al inventario. Los cálculos de ITBIS y totales se realizarán automáticamente.</p>
+                </div>
+
+                <form id="productEntryForm" method="POST" action="{% url 'entrada' %}">
+                    {% csrf_token %}
+                    
+                    <!-- Sección de Facturación -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class='bx bx-receipt'></i>
+                            Información de Facturación
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="invoiceNumber">Número de Factura *</label>
+                                <input type="text" id="invoiceNumber" name="numero_factura" class="form-input" required 
+                                       placeholder="Ej: FAC-001-2024">
+                                <div class="error-message" id="numero_facturaError"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="entryDate">Fecha de Entrada *</label>
+                                <input type="date" id="entryDate" name="fecha_entrada" class="form-input" required>
+                                <div class="error-message" id="fecha_entradaError"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="supplier">Proveedor Asociado *</label>
+                                <select id="supplier" name="proveedor" class="form-input form-select" required>
+                                    <option value="">Seleccionar proveedor</option>
+                                    {% for proveedor in proveedores %}
+                                    <option value="{{ proveedor.id }}">{{ proveedor.nombre_empresa }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="error-message" id="proveedorError"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="ncf">NCF</label>
+                                <input type="text" id="ncf" name="ncf" class="form-input" 
+                                       placeholder="Ej: B0100000001" maxlength="11">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de Producto -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class='bx bx-mobile-alt'></i>
+                            Información del Producto
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label class="form-label" for="productSearch">Buscar Producto Existente (Opcional)</label>
+                                <input type="text" id="productSearch" class="form-input" 
+                                       placeholder="Escribe para buscar productos por marca o modelo...">
+                                <div id="suggestionsContainer"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="productName">Nombre del Producto *</label>
+                                <input type="text" id="productName" name="nombre_producto" class="form-input" required 
+                                       >
+                                <div class="error-message" id="nombre_productoError"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="brand">Marca *</label>
+                                <select id="brand" name="marca" class="form-input form-select" required>
+                                    <option value="">Seleccionar marca</option>
+                                    <option value="honda">Honda</option>
+                                    <option value="yamaha">Yamaha</option>
+                                    <option value="suzuki">Suzuki</option>
+                                    <option value="kawasaki">Kawasaki</option>
+                                    <option value="ktm">KTM</option>
+                                    <option value="ducati">Ducati</option>
+                                    <option value="bmw">BMW</option>
+                                    <option value="harley-davidson">Harley-Davidson</option>
+                                    <option value="bajaj">Bajaj</option>
+                                    <option value="tvS">TVS</option>
+                                    <option value="sym">SYM</option>
+                                    <option value="vespa">Vespa</option>
+                                    <option value="tauroCG">TAURO CG</option>
+                                    <option value="tauro">TAURO </option>
+                                       <option value="haojue">HAOJUE </option>
+                                          <option value="gato">GATO </option>
+                                             <option value="super bestia">SUPER BESTIA </option>
+                                                 <option value="loncin">LONCIN </option>
+                                    <option value="otros">Otros</option>
+                                </select>
+                                <div class="error-message" id="marcaError"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="model">Modelo *</label>
+                                <input type="text" id="model" name="modelo" class="form-input" required 
+                                       placeholder="Ej: iPhone 15 Pro Max">
+                                <div class="error-message" id="modeloError"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="capacity">Capacidad / tanque de combustible</label>
+                                <select id="capacity" name="capacidad" class="form-input form-select">
+                                    <option value="">Seleccionar capacidad</option>
+                                  
+                                <option value="5">5 L</option>
+                                <option value="8">8 L</option>
+                                <option value="10">10 L</option>
+                                <option value="12">12 L</option>
+                                <option value="15">15 L</option>
+                                <option value="20">20 L</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                            <label class="form-label" for="machineNumber">Número/Máquina</label>
+                             <input type="text" id="machineNumber" name="numero_maquina" class="form-input"
+                            placeholder="Ej: M-001">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="imei">Número de chasis *</label>
+                                <input type="text" id="imei" name="imei_serial" class="form-input" 
+                                       placeholder="">
+                                <div class="error-message" id="imei_serialError"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="condition">Estado del Producto *</label>
+                                <select id="condition" name="estado" class="form-input form-select" required>
+                                    <option value="">Seleccionar estado</option>
+                                    <option value="nuevo">Nuevo</option>
+                                    <option value="usado">Usado</option>
+                                    <option value="reacondicionado">Reacondicionado</option>
+                                    <option value="exhibicion">Exhibición</option>
+                                </select>
+                                <div class="error-message" id="estadoError"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="color">Color</label>
+                                <select id="color" name="color" class="form-input form-select">
+                                    <option value="">Seleccionar color</option>
+                                    <option value="negro">Negro</option>
+                                    <option value="blanco">Blanco</option>
+                                    <option value="azul">Azul</option>
+                                    <option value="rojo">Rojo</option>
+                                    <option value="dorado">Dorado</option>
+                                    <option value="plateado">Plateado</option>
+                                    <option value="verde">Verde</option>
+                                    <option value="morado">Morado</option>
+                                    <option value="rosa">Rosa</option>
+                                    <option value="gris">Gris</option>
+                                    <option value="otros">Otros</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="quantity">Cantidad *</label>
+                                <input type="number" id="quantity" name="cantidad" class="form-input" required 
+                                       min="1" value="1" placeholder="1">
+                                <div class="error-message" id="cantidadError"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de Costos -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class='bx bx-calculator'></i>
+                            Información de Costos
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="purchaseCost">Costo de Compra *</label>
+                                <div class="currency-input">
+                                    <input type="number" id="purchaseCost" name="costo_compra" class="form-input" required 
+                                           min="0" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="error-message" id="costo_compraError"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="itbisRate">ITBIS (%)</label>
+                                <div class="percentage-input">
+                                    <input type="number" id="itbisRate" name="porcentaje_itbis" class="form-input" 
+                                           min="0" max="100" step="0.01" value="18" placeholder="18.00">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="itbisAmount">Monto ITBIS</label>
+                                <div class="currency-input">
+                                    <input type="number" id="itbisAmount" name="monto_itbis" class="form-input calculated-field" 
+                                           readonly placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="totalCost">Costo Total</label>
+                                <div class="currency-input">
+                                    <input type="number" id="totalCost" name="costo_total" class="form-input calculated-field" 
+                                           readonly placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="saleCost">Costo de Venta *</label>
+                                <div class="currency-input">
+                                    <input type="number" id="saleCost" name="costo_venta" class="form-input" required 
+                                           min="0" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="error-message" id="costo_ventaError"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="profitMargin">Margen de Ganancia</label>
+                                <div class="percentage-input">
+                                    <input type="number" id="profitMargin" name="margen_ganancia" class="form-input calculated-field" 
+                                           readonly placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de Observaciones -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class='bx bx-note'></i>
+                            Observaciones Adicionales
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label class="form-label" for="observations">Observaciones</label>
+                                <textarea id="observations" name="observaciones" class="form-input form-textarea" 
+                                          placeholder="Notas adicionales sobre el producto, condiciones especiales, etc."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class='bx bx-save'></i>
+                            Registrar Producto
+                        </button>
+                        <a href="{% url 'inventario' %}" class="btn btn-secondary">
+                            <i class='bx bx-list-ul'></i>
+                            Ver Inventario
+                        </a>
+                        <button type="reset" class="btn btn-outline" onclick="limpiarFormulario()">
+                            <i class='bx bx-refresh'></i>
+                            Limpiar Formulario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        // Variables globales
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        const form = document.getElementById('productEntryForm');
+        const successMessage = document.getElementById('successMessage');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Configuración de Toastr
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": false,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+
+        // Función para limpiar el formulario
+        function limpiarFormulario() {
+            form.reset();
+
+            // Restablecer valores por defecto
+            document.getElementById('itbisRate').value = '18';
+            document.getElementById('quantity').value = '1';
+
+            // Restablecer fecha actual
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('entryDate').value = today;
+
+            // Limpiar flags de modificación
+            delete document.getElementById('purchaseCost').dataset.modified;
+            delete document.getElementById('saleCost').dataset.modified;
+
+            // Limpiar búsqueda
+            if (document.getElementById('productSearch')) {
+                document.getElementById('productSearch').value = '';
+            }
+
+            // Ocultar sugerencias
+            const suggestionsContainer = document.getElementById('suggestionsContainer');
+            if (suggestionsContainer) {
+                suggestionsContainer.style.display = 'none';
+            }
+
+            // Recalcular costos
+            calculateCosts();
+
+            // Enfocar el primer campo
+            document.getElementById('invoiceNumber').focus();
+
+            toastr.success('Formulario listo para nuevo producto');
+        }
+
+        // Funciones para el sidebar
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+
+            if (window.innerWidth <= 768) {
+                document.body.classList.toggle('sidebar-open');
+            }
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            document.body.classList.remove('sidebar-open');
+        }
+
+        // Cerrar sidebar al hacer clic en un enlace (móvil)
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        // Cálculos automáticos
+        function calculateCosts() {
+            const purchaseCost = parseFloat(document.getElementById('purchaseCost').value) || 0;
+            const itbisRate = parseFloat(document.getElementById('itbisRate').value) || 0;
+            const saleCost = parseFloat(document.getElementById('saleCost').value) || 0;
+            const quantity = parseInt(document.getElementById('quantity').value) || 1;
+
+            // Calcular ITBIS
+            const itbisAmount = (purchaseCost * itbisRate) / 100;
+            document.getElementById('itbisAmount').value = itbisAmount.toFixed(2);
+
+            // Calcular costo total
+            const totalCost = purchaseCost + itbisAmount;
+            document.getElementById('totalCost').value = totalCost.toFixed(2);
+
+            // Calcular margen de ganancia
+            if (saleCost > 0 && totalCost > 0) {
+                const profitMargin = ((saleCost - totalCost) / totalCost) * 100;
+                document.getElementById('profitMargin').value = profitMargin.toFixed(2);
+            } else {
+                document.getElementById('profitMargin').value = '0.00';
+            }
+        }
+
+        // Event listeners para cálculos automáticos
+        document.getElementById('purchaseCost').addEventListener('input', calculateCosts);
+        document.getElementById('itbisRate').addEventListener('input', calculateCosts);
+        document.getElementById('saleCost').addEventListener('input', calculateCosts);
+        document.getElementById('quantity').addEventListener('input', calculateCosts);
+
+        // Formatear NCF automáticamente
+        document.getElementById('ncf').addEventListener('input', function(e) {
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (value.length > 11) {
+                value = value.substring(0, 11);
+            }
+            e.target.value = value;
+        });
+
+        // Validación de IMEI (letras + números, máximo 16 caracteres)
+        document.getElementById('imei').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+            if (value.length > 18) {
+                value = value.substring(0, 18);
+            }
+            e.target.value = value;
+        });
+
+        // Validación de número de factura
+        document.getElementById('invoiceNumber').addEventListener('input', function(e) {
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
+            e.target.value = value;
+        });
+
+        // Función para buscar productos similares
+        function buscarProductos(query) {
+            const suggestionsContainer = document.getElementById('suggestionsContainer');
+
+            if (!query || query.length < 2) {
+                suggestionsContainer.style.display = 'none';
+                return;
+            }
+
+            fetch(`/buscar-productos/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.productos.length > 0) {
+                        mostrarSugerencias(data.productos);
+                    } else {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en búsqueda:', error);
+                    suggestionsContainer.style.display = 'none';
+                });
+        }
+
+        // Mostrar sugerencias de productos
+        function mostrarSugerencias(productos) {
+            const suggestionsContainer = document.getElementById('suggestionsContainer');
+            suggestionsContainer.innerHTML = '';
+
+            productos.forEach(producto => {
+                const suggestion = document.createElement('div');
+                suggestion.style.padding = '10px';
+                suggestion.style.cursor = 'pointer';
+                suggestion.style.borderBottom = '1px solid #eee';
+                suggestion.onmouseover = () => suggestion.style.background = '#f5f5f5';
+                suggestion.onmouseout = () => suggestion.style.background = 'white';
+
+                suggestion.innerHTML = `
+                    <strong>${producto.nombre_producto || producto.marca_display + ' ' + producto.modelo}</strong><br>
+                    <small>Marca: ${producto.marca_display} |
+                    Modelo: ${producto.modelo} |
+                    Capacidad: ${producto.capacidad || 'N/A'} |
+                    Estado: ${producto.estado || 'N/A'}</small>
+                `;
+
+                suggestion.onclick = () => {
+                    autocompletarCampos(producto);
+                    suggestionsContainer.style.display = 'none';
+                    document.getElementById('productSearch').value = '';
+                };
+
+                suggestionsContainer.appendChild(suggestion);
+            });
+
+            suggestionsContainer.style.display = 'block';
+        }
+
+        // Autocompletar campos con datos del producto seleccionado
+        function autocompletarCampos(producto) {
+            document.getElementById('productName').value = producto.nombre_producto ||
+                `${producto.marca_display} ${producto.modelo} ${producto.capacidad || ''} ${producto.color || ''}`.trim();
+
+            document.getElementById('brand').value = producto.marca;
+            document.getElementById('model').value = producto.modelo;
+            document.getElementById('capacity').value = producto.capacidad || '';
+            document.getElementById('condition').value = producto.estado || '';
+            document.getElementById('color').value = producto.color || '';
+
+            const purchaseCostInput = document.getElementById('purchaseCost');
+            const saleCostInput = document.getElementById('saleCost');
+
+            if (!purchaseCostInput.dataset.modified) {
+                purchaseCostInput.value = producto.costo_compra || '';
+            }
+            if (!saleCostInput.dataset.modified) {
+                saleCostInput.value = producto.costo_venta || '';
+            }
+
+            calculateCosts();
+            toastr.success('Campos autocompletados con producto similar');
+        }
+
+        // Ocultar sugerencias al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            const suggestionsContainer = document.getElementById('suggestionsContainer');
+            const searchInput = document.getElementById('productSearch');
+
+            if (suggestionsContainer && searchInput &&
+                !suggestionsContainer.contains(e.target) &&
+                e.target !== searchInput) {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+
+        // Marcar campos modificados manualmente
+        document.getElementById('purchaseCost').addEventListener('input', function() {
+            this.dataset.modified = 'true';
+        });
+
+        document.getElementById('saleCost').addEventListener('input', function() {
+            this.dataset.modified = 'true';
+        });
+
+        // Validación del formulario
+        function validateForm() {
+            let isValid = true;
+
+            const requiredFields = [
+                {id: 'invoiceNumber', name: 'numero_factura', errorId: 'numero_facturaError'},
+                {id: 'entryDate', name: 'fecha_entrada', errorId: 'fecha_entradaError'},
+                {id: 'supplier', name: 'proveedor', errorId: 'proveedorError'},
+                {id: 'productName', name: 'nombre_producto', errorId: 'nombre_productoError'},
+                {id: 'brand', name: 'marca', errorId: 'marcaError'},
+                {id: 'model', name: 'modelo', errorId: 'modeloError'},
+                {id: 'imei', name: 'imei_serial', errorId: 'imei_serialError'},
+                {id: 'condition', name: 'estado', errorId: 'estadoError'},
+                {id: 'quantity', name: 'cantidad', errorId: 'cantidadError'},
+                {id: 'purchaseCost', name: 'costo_compra', errorId: 'costo_compraError'},
+                {id: 'saleCost', name: 'costo_venta', errorId: 'costo_ventaError'}
+            ];
+
+            requiredFields.forEach(field => {
+                const fieldElement = document.getElementById(field.id);
+                const errorElement = document.getElementById(field.errorId);
+
+                if (!fieldElement || !fieldElement.value.trim()) {
+                    if (errorElement) {
+                        errorElement.textContent = 'Este campo es requerido';
+                        errorElement.style.display = 'block';
+                    }
+                    if (fieldElement) {
+                        fieldElement.style.borderColor = '#dc3545';
+                    }
+                    isValid = false;
+                } else {
+                    if (fieldElement) {
+                        fieldElement.style.borderColor = '#e1e8ed';
+                    }
+                }
+            });
+
+            // Validación adicional para IMEI
+            const imeiValue = document.getElementById('imei').value.trim();
+            if (imeiValue && imeiValue.length < 10) {
+                const errorElement = document.getElementById('imei_serialError');
+                if (errorElement) {
+                    errorElement.textContent = 'El IMEI/Serial debe tener al menos 10 dígitos';
+                    errorElement.style.display = 'block';
+                }
+                isValid = false;
+            }
+
+            // Validación de costos
+            const purchaseCost = parseFloat(document.getElementById('purchaseCost').value) || 0;
+            const saleCost = parseFloat(document.getElementById('saleCost').value) || 0;
+
+            if (purchaseCost <= 0) {
+                const errorElement = document.getElementById('costo_compraError');
+                if (errorElement) {
+                    errorElement.textContent = 'El costo de compra debe ser mayor a 0';
+                    errorElement.style.display = 'block';
+                }
+                isValid = false;
+            }
+
+            if (saleCost <= 0) {
+                const errorElement = document.getElementById('costo_ventaError');
+                if (errorElement) {
+                    errorElement.textContent = 'El costo de venta debe ser mayor a 0';
+                    errorElement.style.display = 'block';
+                }
+                isValid = false;
+            }
+
+            if (saleCost <= purchaseCost) {
+                const errorElement = document.getElementById('costo_ventaError');
+                if (errorElement) {
+                    errorElement.textContent = 'El costo de venta debe ser mayor al costo de compra';
+                    errorElement.style.display = 'block';
+                }
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // Manejo del envío del formulario principal
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Validar campos
+            const isValid = validateForm();
+
+            if (isValid) {
+                // Mostrar carga
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<div class="loading-spinner"></div> Procesando...';
+
+                // Enviar formulario manualmente
+                const formData = new FormData(this);
+
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    }
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data) {
+                        if (data.success) {
+                            // Mostrar mensaje de éxito
+                            toastr.success('Producto registrado exitosamente en el inventario');
+                            // Limpiar formulario después de éxito
+                            limpiarFormulario();
+                        } else if (data.errors) {
+                            // Mostrar errores
+                            showFormErrors(data.errors);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('Ocurrió un error al procesar el formulario');
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bx bx-save"></i> Registrar Producto';
+                });
+            }
+        });
+
+        function showFormErrors(errors) {
+            for (const fieldName in errors) {
+                const errorElement = document.getElementById(`${fieldName}Error`);
+                const field = document.querySelector(`[name="${fieldName}"]`);
+
+                if (errorElement && field) {
+                    errorElement.textContent = errors[fieldName].join(', ');
+                    errorElement.style.display = 'block';
+                    field.style.borderColor = '#dc3545';
+                }
+            }
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+        }
+
+        // Cerrar sidebar al redimensionar ventana
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            }
+        });
+
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer fecha actual por defecto
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('entryDate');
+            if (dateInput && !dateInput.value) {
+                dateInput.value = today;
+            }
+
+            // Calcular valores iniciales
+            calculateCosts();
+
+            // Event listener para la búsqueda de productos
+            const productSearchInput = document.getElementById('productSearch');
+            if (productSearchInput) {
+                productSearchInput.addEventListener('input', function(e) {
+                    buscarProductos(e.target.value);
+                });
+            }
+
+            // Event listener para tecla Escape en búsqueda
+            if (productSearchInput) {
+                productSearchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        const suggestionsContainer = document.getElementById('suggestionsContainer');
+                        if (suggestionsContainer) {
+                            suggestionsContainer.style.display = 'none';
+                        }
+                    }
+                });
+            }
+        });
+
+        // Prevenir envío del formulario con Enter en campos individuales
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+
+                    // Enfocar el siguiente campo
+                    const form = this.closest('form');
+                    const inputs = Array.from(form.querySelectorAll('.form-input'));
+                    const currentIndex = inputs.indexOf(this);
+
+                    if (currentIndex < inputs.length - 1) {
+                        inputs[currentIndex + 1].focus();
+                    } else {
+                        // Si es el último campo, enfocar el botón de enviar
+                        submitBtn.focus();
+                    }
+                }
+            });
+        });
+
+        // Validación en tiempo real
+        document.querySelectorAll('.form-input[required]').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (!this.value.trim()) {
+                    this.style.borderColor = '#dc3545';
+                } else {
+                    this.style.borderColor = '#e1e8ed';
+                }
+            });
+        });
+
+        // Auto-calcular al cargar la página
+        window.addEventListener('load', calculateCosts);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1311 @@
+{% load custom_filters %}
+{% load humanize %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuadre de Caja </title>
+    <link rel="shortcut icon" href="{% static 'image/favicon2.ico' %}" type="image/x-icon">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+       :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 20px 40px rgba(0, 0, 0, 0.15);
+            --shadow-heavy: 0 25px 50px rgba(0, 0, 0, 0.25);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: rgba(0, 0, 0, 0.08);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-gradient);
+            display: flex;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+      /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: var(--secondary-gradient);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: var(--shadow-heavy);
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(20px);
+        }
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%);
+            pointer-events: none;
+        }
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+        .sidebar-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .sidebar-header p {
+            font-size: 0.9rem;
+            opacity: 0.85;
+            margin-bottom: 3px;
+            font-weight: 400;
+        }
+        .sidebar-menu {
+            padding: 20px 0;
+            flex: 1;
+            position: relative;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border-left: 4px solid transparent;
+            position: relative;
+            margin: 2px 0;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+        }
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            background: var(--glass-bg);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            backdrop-filter: blur(10px);
+        }
+        .menu-item:hover::before {
+            width: 100%;
+        }
+        .menu-item:hover {
+            border-left-color: rgba(255, 255, 255, 0.9);
+            padding-left: 30px;
+            transform: translateX(5px);
+        }
+        .menu-item.active {
+            background: var(--glass-bg);
+            border-left-color: white;
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .menu-item i {
+            font-size: 1.3rem;
+            margin-right: 15px;
+            width: 25px;
+            opacity: 0.85;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+        .menu-item:hover i,
+        .menu-item.active i {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        .menu-item span {
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            backdrop-filter: blur(10px);
+        }
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--secondary-gradient);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: var(--shadow-medium);
+            transition: all 0.0s cubic-bezier(0.25, 0.8, 0.25, 1);
+            backdrop-filter: blur(10px);
+        }
+        .menu-toggle:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.0s ease;
+            backdrop-filter: blur(4px);
+        }
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+            padding: 20px;
+            transition: margin-left 0.0s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background: var(--primary-gradient);
+            position: relative;
+        }
+        .main-content::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 280px;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            box-shadow: var(--shadow-heavy);
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .header {
+            background: var(--secondary-gradient);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M25 25a25 25 0 1 1 50 0 25 25 0 0 1-50 0zM75 75a25 25 0 1 1 50 0 25 25 0 0 1-50 0z'/%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.3;
+            animation: float 20s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .header h1 {
+            font-size: 2.75rem;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            animation: fadeInDown 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+            font-weight: 400;
+            animation: fadeInDown 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) 0.2s both;
+        }
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .content-container {
+            padding: 50px;
+            position: relative;
+        }
+        /* Grid Layout */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        /* Card Styles */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: var(--shadow-light);
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            transition: all 0.1s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.1s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.1s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-medium);
+        }
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(0px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .card-header {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .card-header h2 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        .card-header h2 i {
+            color: #667eea;
+            font-size: 1.4rem;
+        }
+        /* Summary Styles */
+        .summary-item {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.1s ease;
+        }
+        .summary-item:hover::before {
+            opacity: 1;
+        }
+        .summary-item:hover {
+            transform: translateX(1px);
+            border-left-width: 6px;
+        }
+        .summary-item h3 {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .summary-item h3 i {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+        .summary-item p {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+            position: relative;
+            z-index: 1;
+        }
+        /* Status Styles */
+        .status {
+            padding: 12px 18px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            letter-spacing: 0.01em;
+            position: relative;
+            overflow: hidden;
+        }
+        .status::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+        .status:hover::before {
+            left: 100%;
+        }
+        .status-success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .status-warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        .status-danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 100%);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        /* Payment Methods */
+        .payment-method {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.1s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+        }
+        .payment-method:last-child {
+            border-bottom: none;
+        }
+        .payment-method:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
+            padding-left: 15px;
+            margin-left: -15px;
+            margin-right: -15px;
+            padding-right: 15px;
+            border-radius: 12px;
+        }
+        .payment-method .label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
+            letter-spacing: 0.01em;
+        }
+        .payment-method .label i {
+            font-size: 1.3rem;
+            color: #667eea;
+            transition: transform 0.1s ease;
+        }
+        .payment-method:hover .label i {
+            transform: scale(1.1);
+        }
+        .payment-method .value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+        /* Button Container - CENTRADO Y RESPONSIVE */
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 20px; /* Añadir padding lateral para evitar que el botón toque los bordes en móviles */
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: none;
+            text-decoration: none;
+            min-width: 200px;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.01em;
+            width: auto; /* Asegurar que el botón no ocupe todo el ancho */
+        }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .btn:hover::before {
+            left: 100px;
+        }
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: var(--shadow-light);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+            color: white;
+            box-shadow: var(--shadow-light);
+        }
+        .btn-secondary:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
+        }
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            border: 2px solid #667eea;
+            backdrop-filter: blur(10px);
+        }
+        .btn-outline:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-light);
+        }
+        .btn i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+            transition: transform 0.1s ease;
+        }
+        .btn:hover i {
+            transform: scale(0.1);
+        }
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+            .main-content::before {
+                left: 0;
+            }
+            .content-container {
+                padding: 25px;
+            }
+            .card {
+                padding: 25px;
+            }
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            .grid-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            /* Ajustes responsive para el botón centrado */
+            .btn-container {
+                margin-top: 50px;
+                gap: 15px;
+            }
+        }
+        /* Desktop specific styles */
+        @media (min-width: 769px) {
+            .sidebar {
+                position: fixed;
+                transform: translateX(0);
+                height: 100vh;
+            }
+            .main-content {
+                margin-left: 280px;
+                min-height: 100vh;
+            }
+            .menu-toggle {
+                display: none;
+            }
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 100%;
+                max-width: 300px;
+                height: 100vh;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 10px;
+                min-height: 100vh;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            body.sidebar-open {
+                overflow: hidden;
+            }
+        }
+        /* Responsive Styles */
+        .btn-container {
+            padding: 0 10px; /* Reducir padding en móviles */
+            margin-top: 10px;
+        }
+        .btn {
+            width: 100%;
+            max-width: 300px;
+ 
+}
+        /* Custom Scrollbar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        /* Loading Animation */
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+        /* Pulse effect for important elements */
+        .pulse-effect {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        /* New styles for separated date/time fields */
+        .date-time-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .date-time-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .date-time-field i {
+            font-size: 1.2rem;
+            color: #667eea;
+        }
+        .date-time-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 120px;
+        }
+        .date-time-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        
+    </style>
+</head>
+<body>
+    <!-- Menu Toggle Button -->
+    <button class="menu-toggle" onclick="toggleSidebar()">
+        <i class='bx bx-menu'></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+ <!-- Sidebar Navigation -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h2>
+            <i class="fas fa-motorcycle"></i>
+            DDMAX
+        </h2>
+        <p>Usuario: {{ user.username }}</p>
+        <p>{{ user.email }}</p>
+    </div>
+    <div class="sidebar-menu">
+        <a href="#" class="menu-item">
+            <i class='bx bx-home-alt'></i>
+            <span>Inicio</span>
+        </a>
+        <a href="{% url 'ventas' %}" class="menu-item">
+            <i class='bx bx-receipt'></i>
+            <span>Facturación</span>
+        </a>
+        <a href="{% url 'registrodecliente' %}" class="menu-item">
+            <i class='bx bx-user-plus'></i>
+            <span>Registrar Cliente</span>
+        </a>
+        <a href="{% url 'listadecliente' %}" class="menu-item">
+            <i class='bx bx-group'></i>
+            <span>Clientes</span>
+        </a>
+        <a href="{% url 'entrada' %}" class="menu-item">
+            <i class='bx bx-package'></i>
+            <span>Entrada Mercancía</span>
+        </a>
+        <a href="{% url 'cuentaporcobrar' %}" class="menu-item">
+            <i class='bx bx-money'></i>
+            <span>Cuenta por Cobrar</span>
+        </a>
+        <a href="{% url 'inventario' %}" class="menu-item">
+            <i class='bx bx-archive'></i>
+            <span>Inventario</span>
+        </a>
+        <a href="{% url 'registrosuplidores' %}" class="menu-item">
+            <i class='bx bx-building'></i>
+            <span>Registrar Suplidores</span>
+        </a>
+        <a href="{% url 'gestiondesuplidores' %}" class="menu-item">
+            <i class='bx bx-buildings'></i>
+            <span>Suplidores</span>
+        </a>
+        <a href="{% url 'devoluciones' %}" class="menu-item">
+            <i class='bx bx-undo'></i>
+            <span>Devoluciones</span>
+        </a>
+        <a href="{% url 'roles' %}" class="menu-item">
+            <i class='bx bx-user-check'></i>
+            <span>Roles</span>
+        </a>
+        <a href="{% url 'anular' %}" class="menu-item">
+            <i class='bx bx-x-circle'></i>
+            <span>Anular Factura</span>
+        </a>
+        <a href="{% url 'reimprimirfactura' %}" class="menu-item">
+            <i class='bx bx-printer'></i>
+            <span>Reimprimir</span>
+        </a>
+        <a href="{% url 'dashboard' %}" class="menu-item">
+            <i class='bx bx-grid-alt'></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="{% url 'index' %}" class="menu-item">
+            <i class='bx bx-log-out'></i>
+            <span>Cerrar Sesión</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <p>Derejsoft V1.0.0</p>
+    </div>
+</nav>
+
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>
+                    <i class='bx bx-trending-up'></i>
+                    Cuadre De Caja
+                </h1>
+                <p>Resumen Detallado De La Jornada De caja</p>
+            </div>
+            <div class="content-container">
+                <!-- Información general -->
+                <div class="grid-container">
+                    <!-- Card 1: Información de jornada -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><i class='bx bx-calendar'></i> Información de Jornada</h2>
+                        </div>
+                        <div class="date-time-container">
+                            <div class="summary-item">
+                                <h3><i class='bx bx-calendar'></i> Fecha de Apertura</h3>
+                                <p id="opening-date">
+                                    {% if caja %}{{ caja.fecha_apertura|date:"d/m/Y" }}{% else %}No disponible{% endif %}
+                                </p>
+                            </div>
+                            <div class="summary-item">
+                                <h3><i class='bx bx-time'></i> Hora de Apertura</h3>
+                                <p id="opening-time">
+                                    {% if caja %}{{ caja.fecha_apertura|date:"h:i A" }}{% else %}No disponible{% endif %}
+                                </p>
+                            </div>
+                            <div class="summary-item">
+                                <h3><i class='bx bx-time-five'></i> Hora de Cierre</h3>
+                                <p id="closing-time">
+                                    {% if caja and caja.fecha_cierre %}{{ caja.fecha_cierre|date:"h:i A" }}{% else %}No cerrado{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <h3><i class='bx bx-user'></i> Responsable</h3>
+                            <p id="responsible-user">
+                                {% if caja %}{{ caja.usuario }}{% else %}No disponible{% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Resumen financiero -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><i class='bx bx-stats'></i> Resumen Financiero</h2>
+                        </div>
+                        <div class="summary-item">
+                            <h3><i class='bx bx-wallet'></i> Monto Inicial de caja</h3>
+                            <p id="initial-amount">
+                                {% if caja %}{{ caja.monto_inicial|currency_format }}{% else %}RD$0.00{% endif %}
+                            </p>
+                        </div>
+                        <div class="summary-item">
+                            <h3><i class='bx bx-money'></i> Monto Contado</h3>
+                            <p id="counted-amount">
+                                {% if cierre %}{{ cierre.monto_efectivo_real|currency_format }}{% else %}RD$0.00{% endif %}
+                            </p>
+                        </div>
+                       
+                        <div class="summary-item">
+                            <h3><i class='bx bx-transfer'></i> Diferencia</h3>
+                            <div id="difference-display" class="status">
+                                {% if cierre %}
+                                    {% if cierre.diferencia > 0 %}
+                                        <i class='bx bx-check-circle'></i> Sobrante de {{ cierre.diferencia|currency_format }}
+                                    {% elif cierre.diferencia < 0 %}
+                                        <i class='bx bx-error-circle'></i> Faltante de {{ cierre.diferencia_absoluta|currency_format }}
+                                    {% else %}
+                                        <i class='bx bx-check-circle'></i> Perfecto, no hay diferencia
+                                    {% endif %}
+                                {% else %}
+                                    <i class='bx bx-loader-alt bx-spin'></i> Calculando...
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ventas por método de pago -->
+               <!-- Ventas por método de pago -->
+<div class="card">
+    <div class="card-header">
+        <h2><i class='bx bx-credit-card'></i> Ventas por Método de Pago</h2>
+    </div>
+    <div class="summary-item">
+        <h3><i class='bx bx-dollar-circle'></i> Total General</h3>
+        <p id="total-sales">
+            {% if ventas %}{{ ventas.total|currency_format }}{% else %}RD$0.00{% endif %}
+        </p>
+    </div>
+    
+    <!-- Desglose del Total General -->
+    <!-- <div class="payment-method">
+        <span class="label"><i class='bx bx-shopping-bag'></i> Ventas al Contado (Total)</span>
+        <span class="value">
+            {% if ventas %}RD${{ ventas.ventas_contado_total|floatformat:2 }}{% else %}RD$0.00{% endif %}
+        </span>
+    </div> -->
+    
+    <!-- <div class="payment-method">
+        <span class="label"><i class='bx bx-credit-card-front'></i> Monto Inicial Créditos (Total)</span>
+        <span class="value">
+            {% if ventas %}RD${{ ventas.montoinicial_credito_total|floatformat:2 }}{% else %}RD$0.00{% endif %}
+        </span>
+    </div> -->
+            <!-- Efectivo -->
+    <div class="payment-method">
+            <span class="label"><i class='bx bx-money'></i> Efectivo</span>
+            <span class="value">
+                {% if ventas %}{{ ventas.efectivo_mostrar|currency_format }}{% else %}RD$0.00{% endif %}
+            </span>
+        </div>
+                <!-- Tarjeta -->
+        <div class="payment-method">
+            <span class="label"><i class='bx bx-credit-card'></i> Tarjeta</span>
+            <span class="value">
+                {% if ventas %}{{ ventas.tarjeta_mostrar|currency_format }}{% else %}RD$0.00{% endif %}
+            </span>
+        </div>
+                <!-- Transferencia -->
+        <div class="payment-method">
+            <span class="label"><i class='bx bx-transfer'></i> Transferencia</span>
+            <span class="value">
+                {% if ventas %}{{ ventas.transferencia_mostrar|currency_format }}{% else %}RD$0.00{% endif %}
+            </span>
+        </div>
+</div>
+
+                <!-- Observaciones -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class='bx bx-note'></i> Observaciones</h2>
+                    </div>
+                    <div class="summary-item">
+                        <p id="observations">
+                            {% if caja and caja.observaciones %}
+                                {{ caja.observaciones }}
+                            {% elif cierre and cierre.observaciones %}
+                                {{ cierre.observaciones }}
+                            {% else %}
+                                No hay observaciones registradas.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="btn-container">
+                    <!-- <button class="btn btn-primary" onclick="exportToPDF()"> -->
+                        <!-- <i class='bx bx-download'></i> Exportar a PDF
+                    </button>
+                    <button class="btn btn-secondary" onclick="printReport()">
+                        <i class='bx bx-printer'></i> Imprimir Cuadre
+                    </button>  -->
+                    <a href="{% url 'iniciocaja'  %}" class="btn btn-outline">
+                        <i class='bx bx-arrow-back'></i> Volver al Inicio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Datos pasados desde Django
+            const registerData = {
+                caja: {% if caja %}{
+                    fechaApertura: "{{ caja.fecha_apertura|date:'c' }}",
+                    fechaCierre: "{{ caja.fecha_cierre|date:'c' }}" || null,
+                    usuario: "{{ caja.usuario }}",
+                    montoInicial: {{ caja.monto_inicial }},
+                    observaciones: "{{ caja.observaciones|default:'' }}"
+                }{% else %}null{% endif %},
+                ventas: {% if ventas %}{
+                    efectivo: {{ ventas.efectivo }},
+                    tarjeta: {{ ventas.tarjeta }},
+                    transferencia: {{ ventas.transferencia }},
+                    credito: {{ ventas.credito }},
+                    total: {{ ventas.total }}
+                }{% else %}null{% endif %},
+                cierre: {% if cierre %}{
+                    montoEfectivoReal: {{ cierre.monto_efectivo_real }},
+                    diferencia: {{ cierre.diferencia }},
+                    observaciones: "{{ cierre.observaciones|default:'' }}"
+                }{% else %}null{% endif %}
+            };
+
+            // Elementos del DOM
+            const DOM = {
+                openingDate: document.getElementById("opening-date"),
+                openingTime: document.getElementById("opening-time"),
+                closingTime: document.getElementById("closing-time"),
+                responsibleUser: document.getElementById("responsible-user"),
+                initialAmount: document.getElementById("initial-amount"),
+                countedAmount: document.getElementById("counted-amount"),
+                creditAmount: document.getElementById("credit-amount"),
+                differenceDisplay: document.getElementById("difference-display"),
+                totalSales: document.getElementById("total-sales"),
+                cashSales: document.getElementById("cash-sales"),
+                cardSales: document.getElementById("card-sales"),
+                transferSales: document.getElementById("transfer-sales"),
+                creditSales: document.getElementById("credit-sales"),
+                observations: document.getElementById("observations")
+            };
+
+            // Funciones para el sidebar
+            function toggleSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const sidebarOverlay = document.querySelector('.sidebar-overlay');
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+                if (window.innerWidth <= 768) {
+                    document.body.classList.toggle('sidebar-open');
+                }
+            }
+
+            function closeSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const sidebarOverlay = document.querySelector('.sidebar-overlay');
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
+            }
+
+            // Función para formatear moneda con animación
+            function formatCurrency(amount) {
+                return new Intl.NumberFormat('es-DO', {
+                    style: 'currency',
+                    currency: 'DOP'
+                }).format(amount).replace('DOP', 'RD');
+            }
+
+            // Función para formatear fecha
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('es-DO', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            }
+
+            // Función para formatear hora
+            function formatTime(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleTimeString('es-DO', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            }
+
+            // Función para animar números
+            function animateNumber(element, finalNumber) {
+                const startNumber = 0;
+                const duration = 1500;
+                const startTime = Date.now();
+                
+                function updateNumber() {
+                    const currentTime = Date.now();
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Easing function para suavizar la animación
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    const currentNumber = startNumber + (finalNumber - startNumber) * easeOutCubic;
+                    
+                    if (element.textContent.includes('RD')) {
+                        element.textContent = formatCurrency(currentNumber);
+                    } else {
+                        element.textContent = Math.round(currentNumber).toLocaleString();
+                    }
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(updateNumber);
+                    }
+                }
+                
+                requestAnimationFrame(updateNumber);
+            }
+
+            // Función para calcular totales con animaciones
+            function calculateTotals() {
+                if (!registerData.caja || !registerData.ventas) {
+                    showNotification('No hay datos de caja disponibles', 'danger');
+                    return;
+                }
+                
+                // Actualizar información de fecha y hora
+                DOM.openingDate.textContent = formatDate(registerData.caja.fechaApertura);
+                DOM.openingTime.textContent = formatTime(registerData.caja.fechaApertura);
+                DOM.closingTime.textContent = registerData.caja.fechaCierre ? 
+                    formatTime(registerData.caja.fechaCierre) : "No cerrado";
+                DOM.responsibleUser.textContent = registerData.caja.usuario;
+                
+                // Animar números principales
+                setTimeout(() => animateNumber(DOM.initialAmount, registerData.caja.montoInicial), 200);
+                
+                if (registerData.cierre) {
+                    setTimeout(() => animateNumber(DOM.countedAmount, registerData.cierre.montoEfectivoReal), 400);
+                }
+                
+                setTimeout(() => animateNumber(DOM.creditAmount, registerData.ventas.credito), 450);
+                setTimeout(() => animateNumber(DOM.totalSales, registerData.ventas.total), 600);
+                
+                // Actualizar diferencia con efecto
+                setTimeout(() => {
+                    if (registerData.cierre) {
+                        if (registerData.cierre.diferencia > 0) {
+                            DOM.differenceDisplay.className = "status status-success pulse-effect";
+                            DOM.differenceDisplay.innerHTML = `<i class='bx bx-check-circle'></i> <span>Sobrante de ${formatCurrency(registerData.cierre.diferencia)}</span>`;
+                        } else if (registerData.cierre.diferencia < 0) {
+                            DOM.differenceDisplay.className = "status status-danger pulse-effect";
+                            DOM.differenceDisplay.innerHTML = `<i class='bx bx-error-circle'></i> <span>Faltante de ${formatCurrency(Math.abs(registerData.cierre.diferencia))}</span>`;
+                        } else {
+                            DOM.differenceDisplay.className = "status status-success pulse-effect";
+                            DOM.differenceDisplay.innerHTML = `<i class='bx bx-check-circle'></i> <span>Perfecto, no hay diferencia</span>`;
+                        }
+                    } else {
+                        DOM.differenceDisplay.className = "status status-warning";
+                        DOM.differenceDisplay.innerHTML = `<i class='bx bx-time'></i> <span>Caja aún no cerrada</span>`;
+                    }
+                }, 800);
+                
+                // Animar métodos de pago
+                setTimeout(() => animateNumber(DOM.cashSales, registerData.ventas.efectivo), 1000);
+                setTimeout(() => animateNumber(DOM.cardSales, registerData.ventas.tarjeta), 1150);
+                setTimeout(() => animateNumber(DOM.transferSales, registerData.ventas.transferencia), 1300);
+                setTimeout(() => animateNumber(DOM.creditSales, registerData.ventas.credito), 1450);
+                
+                // Actualizar observaciones con efecto de escritura
+                setTimeout(() => {
+                    const text = registerData.caja.observaciones || 
+                                (registerData.cierre ? registerData.cierre.observaciones : "") || 
+                                "No hay observaciones registradas";
+                    DOM.observations.textContent = "";
+                    let i = 0;
+                    function typeWriter() {
+                        if (i < text.length) {
+                            DOM.observations.textContent += text.charAt(i);
+                            i++;
+                            setTimeout(typeWriter, 30);
+                        }
+                    }
+                    typeWriter();
+                }, 1500);
+            }
+
+            // Función para mostrar notificación
+            function showNotification(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 16px 24px;
+                    background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
+                    color: white;
+                    border-radius: 12px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                    z-index: 10000;
+                    font-weight: 500;
+                    transform: translateX(400px);
+                    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                    backdrop-filter: blur(10px);
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(0)';
+                }, 100);
+                
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(400px)';
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 3000);
+            }
+
+            // Función para exportar a PDF con feedback
+            function exportToPDF() {
+                const btn = event.target.closest('.btn');
+                const originalContent = btn.innerHTML;
+                
+                btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Generando PDF...';
+                btn.disabled = true;
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                    showNotification('PDF generado correctamente', 'success');
+                }, 2000);
+            }
+
+            // Función para imprimir el reporte con feedback
+            function printReport() {
+                const btn = event.target.closest('.btn');
+                const originalContent = btn.innerHTML;
+                
+                btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Preparando...';
+                btn.disabled = true;
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                    window.print();
+                    showNotification('Enviado a imprimir', 'success');
+                }, 1000);
+            }
+
+            // Función para manejar el responsive con suavidad
+            function handleResize() {
+                const sidebar = document.getElementById('sidebar');
+                const mainContent = document.querySelector('.main-content');
+                
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('active');
+                    document.querySelector('.sidebar-overlay').classList.remove('active');
+                    document.body.classList.remove('sidebar-open');
+                }
+            }
+
+            // Event Listeners
+            window.toggleSidebar = toggleSidebar;
+            window.closeSidebar = closeSidebar;
+            window.exportToPDF = exportToPDF;
+            window.printReport = printReport;
+            window.addEventListener('resize', handleResize);
+
+            // Añadir efectos de hover dinámicos a las cards
+            document.querySelectorAll('.card').forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Añadir efectos a los botones
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px) scale(1.05)';
+                });
+                
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Inicialización con delay para efecto de carga
+            setTimeout(calculateTotals, 500);
+            
+            // Mostrar mensaje de bienvenida
+            setTimeout(() => {
+                if (registerData.caja) {
+                    showNotification('Cuadre de caja cargado correctamente', 'success');
+                } else {
+                    showNotification('No hay caja activa para mostrar', 'warning');
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

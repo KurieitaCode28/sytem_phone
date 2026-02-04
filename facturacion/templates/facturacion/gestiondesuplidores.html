@@ -1,0 +1,1321 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Suplidores</title>
+    <link rel="shortcut icon" href="{% static 'image/favicon2.ico' %}" type="image/x-icon">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Toastr -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(225, 36, 36, 0.1);
+            background: #f606061a;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 3px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+            flex: 1;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: rgba(255, 255, 255, 0.8);
+            padding-left: 30px;
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: white;
+        }
+
+        .menu-item i {
+            font-size: 1.3rem;
+            margin-right: 15px;
+            width: 25px;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-item:hover i,
+        .menu-item.active i {
+            opacity: 1;
+        }
+
+        .menu-item span {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: #f60404;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: #ee5a24;
+            transform: scale(5);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content-container {
+            padding: 40px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 15px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        .table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            padding: 15px;
+            border-bottom: 1px solid #e1e8ed;
+            vertical-align: middle;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .status-inactive {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #721c24;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .no-data i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .checkbox-input {
+            width: 20px;
+            height: 20px;
+            accent-color: #667eea;
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #e1e8ed;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            max-width: 400px;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification.error {
+            background: #F44336;
+        }
+
+        .notification .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification i {
+            font-size: 1.5rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Desktop specific styles */
+        @media (min-width: 769px) {
+            .sidebar {
+                position: fixed;
+                transform: translateX(0);
+                height: 100vh;
+            }
+
+            .main-content {
+                margin-left: 280px;
+                min-height: 100vh;
+            }
+
+            .menu-toggle {
+                display: none;
+            }
+
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 100%;
+                max-width: 300px;
+                height: 100vh;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 10px;
+                min-height: 100vh;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+                padding-top: 60px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .content-container {
+                padding: 20px;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: 100%;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .table {
+                min-width: 800px;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 20px;
+            }
+
+            .modal-header {
+                padding: 20px;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            body.sidebar-open {
+                overflow: hidden;
+            }
+        }
+
+        /* Scrollbar personalizado */
+        .sidebar::-webkit-scrollbar,
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track,
+        .modal-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb,
+        .modal-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover,
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Toggle Button -->
+    <button class="menu-toggle" onclick="toggleSidebar()">
+        <i class='bx bx-menu'></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+ <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+<!-- Sidebar Navigation -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h2>
+            <i class="fas fa-motorcycle"></i>
+           DDMAX
+        </h2>
+        <p>Usuario: {{ user.username }}</p>
+        <p>{{ user.email }}</p>
+    </div>
+    <div class="sidebar-menu">
+        <a href="#" class="menu-item">
+            <i class='bx bx-home-alt'></i>
+            <span>Inicio</span>
+        </a>
+        <a href="{% url 'ventas' %}" class="menu-item">
+            <i class='bx bx-receipt'></i>
+            <span>Facturación</span>
+        </a>
+        <a href="{% url 'registrodecliente' %}" class="menu-item">
+            <i class='bx bx-user-plus'></i>
+            <span>Registrar Cliente</span>
+        </a>
+        <a href="{% url 'listadecliente' %}" class="menu-item">
+            <i class='bx bx-group'></i>
+            <span>Clientes</span>
+        </a>
+        <a href="{% url 'entrada' %}" class="menu-item">
+            <i class='bx bx-package'></i>
+            <span>Entrada Mercancía</span>
+        </a>
+        <a href="{% url 'cuentaporcobrar' %}" class="menu-item">
+            <i class='bx bx-money'></i>
+            <span>Cuenta por Cobrar</span>
+        </a>
+        <a href="{% url 'inventario' %}" class="menu-item">
+            <i class='bx bx-archive'></i>
+            <span>Inventario</span>
+        </a>
+        <a href="{% url 'registrosuplidores' %}" class="menu-item">
+            <i class='bx bx-building'></i>
+            <span>Registrar Suplidores</span>
+        </a>
+        <a href="{% url 'gestiondesuplidores' %}" class="menu-item active">
+            <i class='bx bx-buildings'></i>
+            <span>Suplidores</span>
+        </a>
+        <a href="{% url 'devoluciones' %}" class="menu-item">
+            <i class='bx bx-undo'></i>
+            <span>Devoluciones</span>
+        </a>
+        <a href="{% url 'roles' %}" class="menu-item">
+            <i class='bx bx-user-check'></i>
+            <span>Roles</span>
+        </a>
+        <a href="{% url 'anular' %}" class="menu-item">
+            <i class='bx bx-x-circle'></i>
+            <span>Anular Factura</span>
+        </a>
+        <a href="{% url 'reimprimirfactura' %}" class="menu-item">
+            <i class='bx bx-printer'></i>
+            <span>Reimprimir</span>
+        </a>
+
+
+         <a href="{% url 'cuentasAtrasada' %}" class="menu-item ">
+           <i class='bx bx-time-five'></i>
+            <span>Cuenta Atrasadas</span>
+        </a>
+
+        <a href="{% url 'dashboard' %}" class="menu-item">
+            <i class='bx bx-grid-alt'></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="{% url 'index' %}" class="menu-item">
+            <i class='bx bx-log-out'></i>
+            <span>Cerrar Sesión</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <p>Derejsoft V1.0.0</p>
+    </div>
+</nav>
+
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>
+                    <i class='bx bx-list-ul'></i>
+                    Lista de Suplidores
+                </h1>
+                <p>Gestión y Visualización de Suplidores DDMAX Moto Import</p>
+            </div>
+
+            <div class="content-container">
+                <div class="search-bar">
+                    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por nombre, RNC, email o ciudad...">
+                    <a href="{% url 'agregar_proveedor' %}" class="btn btn-primary">
+                        <i class='bx bx-plus'></i>
+                        Agregar Suplidor
+                    </a>
+                </div>
+
+                <div class="table-container">
+                    <table class="table" id="suppliersTable">
+                        <thead>
+                            <tr>
+                                <th>Empresa</th>
+                                <th>RNC</th>
+                                <th>Contacto</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th>País</th>
+                                <th>Ciudad</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="suppliersTableBody">
+                            {% for proveedor in proveedores %}
+                            <tr>
+                                <td><strong>{{ proveedor.nombre_empresa }}</strong></td>
+                                <td>{{ proveedor.rnc }}</td>
+                                <td>{{ proveedor.nombre_contacto }}</td>
+                                <td>{{ proveedor.email }}</td>
+                                <td>{{ proveedor.telefono }}</td>
+                                <td>{{ proveedor.get_pais_display }}</td>
+                                <td>{{ proveedor.ciudad }}</td>
+                                <td>
+                                    <span class="status-badge {% if proveedor.activo %}status-active{% else %}status-inactive{% endif %}">
+                                        {% if proveedor.activo %}Activo{% else %}Inactivo{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="actions">
+                                    <div class="actions">
+                                        <button class="btn btn-success" onclick="editSupplier('{{ proveedor_id }}')" title="Editor">
+                                            <i class="bx bx-edit"></i>
+                                        </button>
+                                        <button class="btn btn-danger" onclick="confirmDelete('{{ proveedor_id }}')" title="Eliminar">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="no-data">
+                                    <i class='bx bx-package'></i>
+                                    <p>No hay suplidores registrados</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Suplidor -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <i class='bx bx-edit'></i>
+                    Editar Suplidor
+                </h2>
+                <button class="close-btn" onclick="closeEditModal()">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editSupplierForm" method="post" action="{% url 'editar_proveedor' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="editSupplierId" name="supplierId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="editCompanyName">Nombre de la Empresa *</label>
+                            <input type="text" id="editCompanyName" name="nombre_empresa" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="editRnc">RNC *</label>
+                            <input type="text" id="editRnc" name="rnc" class="form-input" required maxlength="13">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="editContactName">Nombre del Contacto *</label>
+                            <input type="text" id="editContactName" name="nombre_contacto" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="editEmail">Correo Electrónico *</label>
+                            <input type="email" id="editEmail" name="email" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="editPhone">Teléfono *</label>
+                            <input type="tel" id="editPhone" name="telefono" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="editWhatsapp">WhatsApp</label>
+                            <input type="tel" id="editWhatsapp" name="whatsapp" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="editCountry">País *</label>
+                            <select id="editCountry" name="pais" class="form-input form-select" required>
+                                <option value="">Seleccionar país</option>
+                                {% for pais in paises %}
+                                <option value="{{ pais.0 }}">{{ pais.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="editCity">Ciudad *</label>
+                            <input type="text" id="editCity" name="ciudad" class="form-input" required>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label" for="editAddress">Dirección Completa</label>
+                            <input type="text" id="editAddress" name="direccion" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="editPaymentTerms">Términos de Pago</label>
+                            <select id="editPaymentTerms" name="terminos_pago" class="form-input form-select">
+                                <option value="">Seleccionar términos</option>
+                                {% for termino in terminos_pago %}
+                                <option value="{{ termino.0 }}">{{ termino.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="editCreditLimit">Límite de Crédito (RD$)</label>
+                            <input type="number" id="editCreditLimit" name="limite_credito" class="form-input" min="0" step="0.01">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label" for="editNotes">Notas Adicionales</label>
+                            <textarea id="editNotes" name="notas" class="form-input form-textarea"></textarea>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="editIsActive" name="activo" class="checkbox-input">
+                                <label for="editIsActive" class="form-label">Suplidor Activo</label>
+                            </div>
+                        </div>
+                          <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeEditModal()">
+                    <i class='bx bx-x'></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="editSupplierForm" class="btn btn-primary">
+                    <i class='bx bx-save'></i>
+                    Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+                    </div>
+                </form>
+            </div>
+          
+
+    <!-- Modal de confirmación para eliminar -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>
+                    <i class='bx bx-trash'></i>
+                    Confirmar Eliminación
+                </h2>
+                <button class="close-btn" onclick="closeDeleteModal()">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar este suplidor? Esta acción no se puede deshacer.</p>
+                <form id="deleteForm" method="post" action="{% url 'eliminar_proveedor' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="deleteSupplierId" name="supplierId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeDeleteModal()">
+                    <i class='bx bx-x'></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="deleteForm" class="btn btn-danger">
+                    <i class='bx bx-trash'></i>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        // Funciones para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+
+            sidebar.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+
+            if (window.innerWidth <= 768) {
+                document.body.classList.toggle('sidebar-open');
+            }
+        }
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            document.body.classList.remove('sidebar-open');
+        }
+        // Cerrar sidebar al hacer clic en un enlace (móvil)
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
+                }
+            });
+        });
+        // Función para obtener datos del proveedor via AJAX
+        async function fetchSupplierData(id) {
+            try {
+                const response = await fetch(`/proveedores/${id}/data/`);
+                if (!response.ok) {
+                    throw new Error('Error al obtener datos del proveedor');
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+        // Función para abrir modal de edición con datos del proveedor
+        async function editSupplier(id) {
+            try {
+                const supplierData = await fetchSupplierData(id);
+
+                // Llenar el formulario con los datos del proveedor
+                document.getElementById('editSupplierId').value = supplierData.id;
+                document.getElementById('editCompanyName').value = supplierData.nombre_empresa;
+                document.getElementById('editRnc').value = supplierData.rnc;
+                document.getElementById('editContactName').value = supplierData.nombre_contacto;
+                document.getElementById('editEmail').value = supplierData.email;
+                document.getElementById('editPhone').value = supplierData.telefono;
+                document.getElementById('editWhatsapp').value = supplierData.whatsapp || '';
+                document.getElementById('editCountry').value = supplierData.pais;
+                document.getElementById('editCity').value = supplierData.ciudad;
+                document.getElementById('editAddress').value = supplierData.direccion || '';
+                document.getElementById('editPaymentTerms').value = supplierData.terminos_pago || '';
+                document.getElementById('editCreditLimit').value = supplierData.limite_credito || '0';
+                document.getElementById('editNotes').value = supplierData.notas || '';
+                document.getElementById('editIsActive').checked = supplierData.activo;
+                // Mostrar modal
+                document.getElementById('editModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+            } catch (error) {
+                console.error('Error al cargar datos del proveedor:', error);
+                toastr.error('Error al cargar los datos del proveedor. Por favor intente nuevamente.');
+            }
+        }
+
+        
+        // Función para cargar clientes desde la base de datos
+        async function cargarClientes() {
+            toggleLoading(true);
+            try {
+                const response = await fetch('/obtener-suplidores/');
+                const result = await response.json();
+
+                if (result.success) {
+                    clients = result.clientes;
+                    renderClientsTable();
+                    toastr.success(`Clientes cargados: ${supplier.length}`);
+                } else {
+                    console.error('Error al cargar clientes:', result.message);
+                    toastr.error('Error al cargar clientes: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error de conexión:', error);
+                toastr.error('Error de conexión al cargar clientes');
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        // Función para cerrar modal de edición
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        // Función para confirmar eliminación
+        function confirmDelete(id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡No podrás revertir la eliminación del suplidor!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, eliminarlo!',
+                cancelButtonText: 'No, Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteSupplierId').value = id;
+                    document.getElementById('deleteForm').submit();
+                }
+            });
+        }
+        // Función para cerrar modal de eliminación
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        // Función para formatear RNC (XXX-XXXXX-X)
+        function formatRNC(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 9) {
+                value = value.replace(/(\d{3})(\d{5})(\d{1})/, '$1-$2-$3');
+            }
+            e.target.value = value;
+        }
+        // Función para formatear teléfonos (XXX) XXX-XXXX
+        function formatPhone(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 10) {
+                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+            }
+            e.target.value = value;
+        }
+        // Función de búsqueda en tiempo real
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            if (!searchInput) return;
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                const rows = document.querySelectorAll('#suppliersTableBody tr');
+
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+        // Manejar envío del formulario de edición con AJAX
+        function setupEditForm() {
+            const editForm = document.getElementById('editSupplierForm');
+            if (!editForm) return;
+            editForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const submitButton = editForm.querySelector('button[type="submit"]');
+                const originalButtonText = submitButton.innerHTML;
+
+                try {
+                    // Mostrar estado de carga
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="bx bx-loader bx-spin"></i> Guardando...';
+
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        }
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        toastr.success('Proveedor actualizado exitosamente');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        throw new Error(data.message || 'Error al guardar los cambios');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    toastr.error(error.message);
+                } finally {
+                    // Restaurar botón
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
+                }
+            });
+        }
+        // Inicialización de eventos
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar eventos de los modales
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        if (modal.id === 'editModal') {
+                            closeEditModal();
+                        } else if (modal.id === 'deleteModal') {
+                            closeDeleteModal();
+                        }
+                    }
+                });
+            });
+
+            // Manejar el cierre de sesión con SweetAlert2
+        document.querySelector("a[href='{% url 'index' %}']").addEventListener("click", function(e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: '¿Cerrar Sesión?',
+                text: '¿Está seguro de que desea cerrar la sesión?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#dc3545',
+                confirmButtonText: 'Sí, Cerrar Sesión',
+                cancelButtonText: 'Cancelar',
+                backdrop: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "{% url 'index' %}";
+                }
+            });
+        });
+        
+            // Configurar formatos de entrada
+            document.getElementById('editRnc')?.addEventListener('input', formatRNC);
+            document.getElementById('editPhone')?.addEventListener('input', formatPhone);
+            document.getElementById('editWhatsapp')?.addEventListener('input', formatPhone);
+            // Configurar búsqueda
+            setupSearch();
+            // Configurar formulario de edición
+            setupEditForm();
+            // Cerrar sidebar al redimensionar ventana
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    closeSidebar();
+                }
+            });
+            // Mostrar mensajes de Django
+            {% if messages %}
+                {% for message in messages %}
+                    toastr.{{ message.tags }}('{{ message }}');
+                {% endfor %}
+            {% endif %}
+            // Configuración de Toastr
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+        });
+    </script>
+</body>
+</html>
