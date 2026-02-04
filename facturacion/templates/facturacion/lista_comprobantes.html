@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprobante de Pago - {{ comprobante.numero_comprobante }}</title>
+    <link rel="shortcut icon" href="{% static 'image/favicon2.ico' %}" type="image/x-icon">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .comprobante {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #007bff;
+            margin: 0;
+            font-size: 2rem;
+        }
+        .header p {
+            color: #6c757d;
+            margin: 5px 0;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .info-section h3 {
+            color: #333;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .info-value {
+            color: #212529;
+        }
+        .payment-summary {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .payment-summary h3 {
+            color: #0066cc;
+            margin-top: 0;
+        }
+        .amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #28a745;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        @media print {
+            body { background: white; }
+            .comprobante { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="comprobante">
+        <div class="header">
+            <h1>COMPROBANTE DE PAGO</h1>
+            <p><strong>{{ comprobante.numero_comprobante }}</strong></p>
+            <p>Fecha: {{ comprobante.fecha_emision|date:"d/m/Y H:i" }}</p>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-section">
+                <h3>Información del Cliente</h3>
+                <div class="info-row">
+                    <span class="info-label">Nombre:</span>
+                    <span class="info-value">{{ cliente.full_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Teléfono:</span>
+                    <span class="info-value">{{ cliente.primary_phone }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Documento:</span>
+                    <span class="info-value">{{ cliente.identification_number }}</span>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Información de la Factura</h3>
+                <div class="info-row">
+                    <span class="info-label">Número de Factura:</span>
+                    <span class="info-value">{{ cuenta.venta.numero_factura }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Fecha de Venta:</span>
+                    <span class="info-value">{{ cuenta.venta.fecha_venta|date:"d/m/Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Monto Total:</span>
+                    <span class="info-value"> {{ cuenta.monto_total|currency_format }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="payment-summary">
+            <h3>Detalle del Pago</h3>
+            <div class="info-row">
+                <span class="info-label">Monto del Pago:</span>
+                <span class="info-value amount"> {{ pago.monto|currency_format}}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Método de Pago:</span>
+                <span class="info-value">{{ pago.get_metodo_pago_display }}</span>
+            </div>
+            {% if pago.referencia %}
+            <div class="info-row">
+                <span class="info-label">Referencia:</span>
+                <span class="info-value">{{ pago.referencia }}</span>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <span class="info-label">Fecha de Pago:</span>
+                <span class="info-value">{{ pago.fecha_pago|date:"d/m/Y H:i" }}</span>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>Estado de la Cuenta</h3>
+            <div class="info-row">
+                <span class="info-label">Monto Total Pagado:</span>
+                <span class="info-value"></span> {{ cuenta.monto_pagado|currency_format}}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Saldo Pendiente:</span>
+                <span class="info-value"> {{ cuenta.saldo_pendiente|currency_format }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Estado:</span>
+                <span class="info-value">{{ cuenta.get_estado_display }}</span>
+            </div>
+        </div>
+
+        {% if pago.observaciones %}
+        <div class="info-section">
+            <h3>Observaciones</h3>
+            <p>{{ pago.observaciones }}</p>
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            <p><strong>DDMAX</strong> - Sistema de Gestión</p>
+            <p>Este comprobante es válido como constancia de

@@ -1,0 +1,17 @@
+#entorno virtual
+venv/
+env/
+venv/
+telefono/
+# Base de datos mysql
+.cnf
+.env
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+__pycache__/
+
+null/
+env/
+*.sqlite3
+*.sql

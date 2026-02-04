@@ -1,0 +1,1166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Suplidores - D'uro Cell</title>
+    <link rel="shortcut icon" href="{% static 'image/favicon2.ico' %}" type="image/x-icon">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 3px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: rgba(255, 255, 255, 0.8);
+            padding-left: 30px;
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: white;
+        }
+
+        .menu-item i {
+            font-size: 1.3rem;
+            margin-right: 15px;
+            width: 25px;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-item:hover i,
+        .menu-item.active i {
+            opacity: 1;
+        }
+
+        .menu-item span {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: #ee5a24;
+            transform: scale(1.05);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-input:valid {
+            border-color: #28a745;
+        }
+
+        .form-input:invalid:not(:placeholder-shown) {
+            border-color: '#dc3545';
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .checkbox-input {
+            width: 20px;
+            height: 20px;
+            accent-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scrollbar personalizado para la sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Desktop specific styles */
+        @media (min-width: 769px) {
+            .sidebar {
+                position: fixed;
+                transform: translateX(0);
+                height: 100vh;
+            }
+
+            .main-content {
+                margin-left: 280px;
+                min-height: 100vh;
+            }
+
+            .menu-toggle {
+                display: none;
+            }
+
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 100%;
+                max-width: 300px;
+                height: 100vh;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 10px;
+                min-height: 100vh;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+                padding-top: 60px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            body.sidebar-open {
+                overflow: hidden;
+            }
+        }
+
+        /* Estilos adicionales para Toastr */
+        .toast-success {
+            background-color: #28a745;
+        }
+
+        .toast-error {
+            background-color: #dc3545;
+        }
+
+        .toast-info {
+            background-color: #17a2b8;
+        }
+
+        .toast-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Toggle Button -->
+    <button class="menu-toggle" onclick="toggleSidebar()">
+        <i class='bx bx-menu'></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar Navigation -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h2>
+            <i class="fas fa-motorcycle"></i>
+           DDMAX
+        </h2>
+        <p>Usuario: {{ user.username }}</p>
+        <p>{{ user.email }}</p>
+    </div>
+    <div class="sidebar-menu">
+        <a href="#" class="menu-item">
+            <i class='bx bx-home-alt'></i>
+            <span>Inicio</span>
+        </a>
+        <a href="{% url 'ventas' %}" class="menu-item">
+            <i class='bx bx-receipt'></i>
+            <span>Facturación</span>
+        </a>
+        <a href="{% url 'registrodecliente' %}" class="menu-item">
+            <i class='bx bx-user-plus'></i>
+            <span>Registrar Cliente</span>
+        </a>
+        <a href="{% url 'listadecliente' %}" class="menu-item">
+            <i class='bx bx-group'></i>
+            <span>Clientes</span>
+        </a>
+        <a href="{% url 'entrada' %}" class="menu-item">
+            <i class='bx bx-package'></i>
+            <span>Entrada Mercancía</span>
+        </a>
+        <a href="{% url 'cuentaporcobrar' %}" class="menu-item">
+            <i class='bx bx-money'></i>
+            <span>Cuenta por Cobrar</span>
+        </a>
+        <a href="{% url 'inventario' %}" class="menu-item">
+            <i class='bx bx-archive'></i>
+            <span>Inventario</span>
+        </a>
+        <a href="{% url 'registrosuplidores' %}" class="menu-item active">
+            <i class='bx bx-building'></i>
+            <span>Registrar Suplidores</span>
+        </a>
+        <a href="{% url 'gestiondesuplidores' %}" class="menu-item">
+            <i class='bx bx-buildings'></i>
+            <span>Suplidores</span>
+        </a>
+        <a href="{% url 'devoluciones' %}" class="menu-item">
+            <i class='bx bx-undo'></i>
+            <span>Devoluciones</span>
+        </a>
+        <a href="{% url 'roles' %}" class="menu-item">
+            <i class='bx bx-user-check'></i>
+            <span>Roles</span>
+        </a>
+        <a href="{% url 'anular' %}" class="menu-item">
+            <i class='bx bx-x-circle'></i>
+            <span>Anular Factura</span>
+        </a>
+        <a href="{% url 'reimprimirfactura' %}" class="menu-item">
+            <i class='bx bx-printer'></i>
+            <span>Reimprimir</span>
+        </a>
+
+         <a href="{% url 'cuentasAtrasada' %}" class="menu-item ">
+           <i class='bx bx-time-five'></i>
+            <span>Cuenta Atrasadas</span>
+        </a>
+
+        <a href="{% url 'dashboard' %}" class="menu-item">
+            <i class='bx bx-grid-alt'></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="{% url 'index' %}" class="menu-item">
+            <i class='bx bx-log-out'></i>
+            <span>Cerrar Sesión</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <p>Derejsoft V1.0.0</p>
+    </div>
+</nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>
+                    <i class='bx bx-user-plus'></i>
+                    Registro de Suplidores
+                </h1>
+                <p>Sistema de Gestión de Suplidores DDMAX Moto Import</p>
+            </div>
+
+<div class="form-container">
+                <!-- {% if messages %}
+                    {% for message in messages %}
+                        <div class="success-message" style="display: block;">
+                            <i class='bx bx-check-circle'></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if error %}
+                    <div class="error-message" style="display: block;">
+                        <i class='bx bx-error'></i>
+                        {{ error }}
+                    </div>
+                {% endif %} -->
+
+                <form method="post" id="supplierForm">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <!-- Información Básica -->
+                        <div class="form-group">
+                            <label class="form-label" for="nombre_empresa">Nombre de la Empresa *</label>
+                            <input type="text" id="nombre_empresa" name="nombre_empresa" class="form-input" required 
+                                   placeholder="Ej: TechnoPhone Distribuidores" 
+                                   value="{{ valores.nombre_empresa|default_if_none:'' }}">
+                            <div class="error-message" id="nombre_empresaError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="rnc">RNC *</label>
+                            <input type="text" id="rnc" name="rnc" class="form-input" required 
+                                   placeholder="Ej: 123-45678-9" maxlength="13" 
+                                   value="{{ valores.rnc|default_if_none:'' }}">
+                            <div class="error-message" id="rncError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="nombre_contacto">Nombre del Contacto *</label>
+                            <input type="text" id="nombre_contacto" name="nombre_contacto" class="form-input" required 
+                                   placeholder="Ej: Juan Pérez" 
+                                   value="{{ valores.nombre_contacto|default_if_none:'' }}">
+                            <div class="error-message" id="nombre_contactoError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="email">Correo Electrónico *</label>
+                            <input type="email" id="email" name="email" class="form-input" required 
+                                   placeholder="contacto@empresa.com" 
+                                   value="{{ valores.email|default_if_none:'' }}">
+                            <div class="error-message" id="emailError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="telefono">Teléfono *</label>
+                            <input type="tel" id="telefono" name="telefono" class="form-input" required 
+                                   placeholder="(809) 123-4567" 
+                                   value="{{ valores.telefono|default_if_none:'' }}">
+                            <div class="error-message" id="telefonoError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="whatsapp">WhatsApp</label>
+                            <input type="tel" id="whatsapp" name="whatsapp" class="form-input" 
+                                   placeholder="(809) 987-6543" 
+                                   value="{{ valores.whatsapp|default_if_none:'' }}">
+                            <div class="error-message" id="whatsappError"></div>
+                        </div>
+
+                        <!-- Ubicación -->
+                        <div class="form-group">
+                            <label class="form-label" for="pais">País *</label>
+                            <select id="pais" name="pais" class="form-input form-select" required>
+                                <option value="">Seleccionar país</option>
+                                <option value="DO" {% if valores.pais == 'DO' %}selected{% endif %}>República Dominicana</option>
+                                <option value="US" {% if valores.pais == 'US' %}selected{% endif %}>Estados Unidos</option>
+                                <option value="PR" {% if valores.pais == 'PR' %}selected{% endif %}>Puerto Rico</option>
+                                <option value="HT" {% if valores.pais == 'HT' %}selected{% endif %}>Haití</option>
+                                <option value="JM" {% if valores.pais == 'JM' %}selected{% endif %}>Jamaica</option>
+                                <option value="CU" {% if valores.pais == 'CU' %}selected{% endif %}>Cuba</option>
+                                <option value="CO" {% if valores.pais == 'CO' %}selected{% endif %}>Colombia</option>
+                                <option value="VE" {% if valores.pais == 'VE' %}selected{% endif %}>Venezuela</option>
+                                <option value="PA" {% if valores.pais == 'PA' %}selected{% endif %}>Panamá</option>
+                                <option value="CR" {% if valores.pais == 'CR' %}selected{% endif %}>Costa Rica</option>
+                                <option value="MX" {% if valores.pais == 'MX' %}selected{% endif %}>México</option>
+                                <option value="CN" {% if valores.pais == 'CN' %}selected{% endif %}>China</option>
+                                <option value="KR" {% if valores.pais == 'KR' %}selected{% endif %}>Corea del Sur</option>
+                                <option value="TW" {% if valores.pais == 'TW' %}selected{% endif %}>Taiwán</option>
+                                <option value="JP" {% if valores.pais == 'JP' %}selected{% endif %}>Japón</option>
+                            </select>
+                            <div class="error-message" id="paisError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="ciudad">Ciudad *</label>
+                            <input type="text" id="ciudad" name="ciudad" class="form-input" required 
+                                   placeholder="Ej: Santo Domingo" 
+                                   value="{{ valores.ciudad|default_if_none:'' }}">
+                            <div class="error-message" id="ciudadError"></div>
+                        </div>
+
+                        <!-- <div class="form-group">
+                            <label class="form-label" for="categoria">Categoría de Productos *</label>
+                            <select id="categoria" name="categoria" class="form-input form-select" required>
+                                <option value="">Seleccionar categoría</option>
+                                <option value="smartphones" {% if valores.categoria == 'smartphones' %}selected{% endif %}>Smartphones</option>
+                                <option value="accesorios" {% if valores.categoria == 'accesorios' %}selected{% endif %}>Accesorios</option>
+                                <option value="repuestos" {% if valores.categoria == 'repuestos' %}selected{% endif %}>Repuestos</option>
+                                <option value="tablets" {% if valores.categoria == 'tablets' %}selected{% endif %}>Tablets</option>
+                                <option value="smartwatch" {% if valores.categoria == 'smartwatch' %}selected{% endif %}>Smartwatch</option>
+                                <option value="audio" {% if valores.categoria == 'audio' %}selected{% endif %}>Audio y Auriculares</option>
+                                <option value="cargadores" {% if valores.categoria == 'cargadores' %}selected{% endif %}>Cargadores y Cables</option>
+                                <option value="fundas" {% if valores.categoria == 'fundas' %}selected{% endif %}>Fundas y Protectores</option>
+                            </select>
+                            <div class="error-message" id="categoriaError"></div>
+                        </div> -->
+
+                        <div class="form-group full-width">
+                            <label class="form-label" for="direccion">Dirección Completa</label>
+                            <textarea id="direccion" name="direccion" class="form-input form-textarea" 
+                                      placeholder="Calle, número, sector">{{ valores.direccion|default_if_none:'' }}</textarea>
+                            <div class="error-message" id="direccionError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="terminos_pago">Términos de Pago</label>
+                            <select id="terminos_pago" name="terminos_pago" class="form-input form-select">
+                                <option value="">Seleccionar términos</option>
+                                <option value="contado" {% if valores.terminos_pago == 'contado' %}selected{% endif %}>Contado</option>
+                                <option value="15-dias" {% if valores.terminos_pago == '15-dias' %}selected{% endif %}>15 días</option>
+                                <option value="30-dias" {% if valores.terminos_pago == '30-dias' %}selected{% endif %}>30 días</option>
+                                <option value="45-dias" {% if valores.terminos_pago == '45-dias' %}selected{% endif %}>45 días</option>
+                                <option value="60-dias" {% if valores.terminos_pago == '60-dias' %}selected{% endif %}>60 días</option>
+                            </select>
+                            <div class="error-message" id="terminos_pagoError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="limite_credito">Límite de Crédito (RD$)</label>
+                            <input type="number" id="limite_credito" name="limite_credito" class="form-input" 
+                                   placeholder="0.00" min="0" step="0.01" 
+                                   value="{{ valores.limite_credito|default_if_none:'' }}">
+                            <div class="error-message" id="limite_creditoError"></div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label" for="notas">Notas Adicionales</label>
+                            <textarea id="notas" name="notas" class="form-input form-textarea" 
+                                      placeholder="Información adicional sobre el suplidor...">{{ valores.notas|default_if_none:'' }}</textarea>
+                            <div class="error-message" id="notasError"></div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="activo" name="activo" class="checkbox-input" 
+                                       {% if valores.activo or not valores %}checked{% endif %}>
+                                <label for="activo" class="form-label">Suplidor Activo</label>
+                            </div>
+                            <div class="error-message" id="activoError"></div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class='bx bx-save'></i>
+                            Registrar Suplidor
+                        </button>
+                        <button type="reset" class="btn btn-outline">
+                            <i class='bx bx-refresh'></i>
+                            Limpiar Formulario
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Eliminamos los mensajes de éxito/error estáticos ya que usaremos Toastr -->
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery (requerido para Toastr) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Configuración de Toastr
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": true,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+
+        // Mostrar mensajes del servidor con Toastr
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'success' %}
+                    toastr.success('{{ message }}', 'Éxito');
+                {% elif message.tags == 'error' %}
+                    toastr.error('{{ message }}', 'Error');
+                {% elif message.tags == 'warning' %}
+                    toastr.warning('{{ message }}', 'Advertencia');
+                {% else %}
+                    toastr.info('{{ message }}', 'Información');
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        // Mostrar errores del servidor con Toastr
+        {% if error %}
+            toastr.error('{{ error }}', 'Error de Validación');
+        {% endif %}
+
+        // Funciones para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+            
+            sidebar.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+            
+            if (window.innerWidth <= 768) {
+                document.body.classList.toggle('sidebar-open');
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+            
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            document.body.classList.remove('sidebar-open');
+        }
+
+        // Cerrar sidebar al hacer clic en un enlace (móvil)
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        // Formatear RNC automáticamente
+        document.getElementById('rnc').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 9) {
+                value = value.replace(/(\d{3})(\d{5})(\d{1})/, '$1-$2-$3');
+            }
+            e.target.value = value;
+        });
+
+        // Formatear números de teléfono automáticamente
+        document.getElementById('telefono').addEventListener('input', formatPhone);
+        document.getElementById('whatsapp').addEventListener('input', formatPhone);
+
+        function formatPhone(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 10) {
+                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+            }
+            e.target.value = value;
+        }
+
+        // Validación en tiempo real
+        const inputs = document.querySelectorAll('.form-input');
+        inputs.forEach(input => {
+            input.addEventListener('blur', validateField);
+            input.addEventListener('input', clearError);
+        });
+
+        function validateField(e) {
+            const field = e.target;
+            const fieldName = field.name;
+            const value = field.value.trim();
+            const errorElement = document.getElementById(fieldName + 'Error');
+
+            let isValid = true;
+            let errorMessage = '';
+
+            switch (fieldName) {
+                case 'nombre_empresa':
+                    if (!value) {
+                        errorMessage = 'El nombre de la empresa es requerido';
+                        isValid = false;
+                    } else if (value.length < 2) {
+                        errorMessage = 'El nombre debe tener al menos 2 caracteres';
+                        isValid = false;
+                    }
+                    break;
+
+                case 'rnc':
+                    if (!value) {
+                        errorMessage = 'El RNC es requerido';
+                        isValid = false;
+                    } else if (!/^\d{3}-?\d{5}-?\d{1}$/.test(value.replace(/\s/g, ''))) {
+                        errorMessage = 'Formato de RNC inválido (Ej: 123-45678-9)';
+                        isValid = false;
+                    }
+                    break;
+
+                case 'nombre_contacto':
+                    if (!value) {
+                        errorMessage = 'El nombre del contacto es requerido';
+                        isValid = false;
+                    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+                        errorMessage = 'El nombre solo debe contener letras';
+                        isValid = false;
+                    }
+                    break;
+
+                case 'email':
+                    if (!value) {
+                        errorMessage = 'El correo electrónico es requerido';
+                        isValid = false;
+                    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                        errorMessage = 'Formato de correo inválido';
+                        isValid = false;
+                    }
+                    break;
+
+                case 'telefono':
+                    if (!value) {
+                        errorMessage = 'El teléfono es requerido';
+                        isValid = false;
+                    } else if (!/^[\d\s\-()]+$/.test(value)) {
+                        errorMessage = 'Formato de teléfono inválido';
+                        isValid = false;
+                    }
+                    break;
+
+                case 'pais':
+                    if (!value) {
+                        errorMessage = 'Debe seleccionar un país';
+                        isValid = false;
+                    }
+                    break;
+
+                case 'ciudad':
+                    if (!value) {
+                        errorMessage = 'La ciudad es requerida';
+                        isValid = false;
+                    } else if (value.length < 2) {
+                        errorMessage = 'La ciudad debe tener al menos 2 caracteres';
+                        isValid = false;
+                    }
+                    break;
+            }
+
+            if (errorElement) {
+                if (!isValid) {
+                    errorElement.textContent = errorMessage;
+                    errorElement.style.display = 'block';
+                    field.style.borderColor = '#dc3545';
+                    // Mostrar error con Toastr para validaciones importantes
+                    if (value) { // Solo mostrar Toastr si el campo tiene contenido
+                        toastr.warning(errorMessage, 'Validación');
+                    }
+                } else {
+                    errorElement.style.display = 'none';
+                    field.style.borderColor = '#28a745';
+                }
+            }
+
+            return isValid;
+        }
+
+        function clearError(e) {
+            const field = e.target;
+            const errorElement = document.getElementById(field.name + 'Error');
+            if (errorElement) {
+                errorElement.style.display = 'none';
+                field.style.borderColor = '#e1e8ed';
+            }
+        }
+
+        // Cerrar sidebar al redimensionar ventana
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            }
+        });
+
+        // Validar formulario antes de enviar con SweetAlert2
+        document.getElementById('supplierForm').addEventListener('submit', function(e) {
+            const requiredFields = ['nombre_empresa', 'rnc', 'nombre_contacto', 'email', 'telefono', 'pais', 'ciudad'];
+            let isFormValid = true;
+            let errorFields = [];
+
+            requiredFields.forEach(fieldName => {
+                const field = document.getElementById(fieldName);
+                if (!validateField({ target: field })) {
+                    isFormValid = false;
+                    errorFields.push(fieldName);
+                }
+            });
+
+            if (!isFormValid) {
+                e.preventDefault();
+                
+                // Usar SweetAlert2 para mostrar errores de validación importantes
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    html: `Por favor complete los siguientes campos requeridos correctamente:<br><br>
+                           <ul style="text-align: left;">
+                           ${errorFields.map(field => {
+                               const fieldLabels = {
+                                   'nombre_empresa': 'Nombre de la Empresa',
+                                   'rnc': 'RNC',
+                                   'nombre_contacto': 'Nombre del Contacto',
+                                   'email': 'Correo Electrónico',
+                                   'telefono': 'Teléfono',
+                                   'pais': 'País',
+                                   'ciudad': 'Ciudad'
+                               };
+                               return `<li>${fieldLabels[field]}</li>`;
+                           }).join('')}
+                           </ul>`,
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#667eea',
+                    backdrop: true
+                });
+                
+                // Hacer scroll al primer campo con error
+                if (errorFields.length > 0) {
+                    const firstErrorField = document.getElementById(errorFields[0]);
+                    firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstErrorField.focus();
+                }
+            } else {
+                // Confirmación con SweetAlert2 antes de enviar el formulario
+                e.preventDefault();
+                
+                Swal.fire({
+                    title: '¿Registrar Suplidor?',
+                    text: '¿Está seguro de que desea registrar este suplidor?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#667eea',
+                    cancelButtonColor: '#dc3545',
+                    confirmButtonText: 'Sí, Registrar',
+                    cancelButtonText: 'Cancelar',
+                    backdrop: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Mostrar mensaje de procesamiento
+                        Swal.fire({
+                            title: 'Procesando...',
+                            text: 'Registrando suplidor en el sistema',
+                            icon: 'info',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        
+                        // Enviar formulario después de 1 segundo para mostrar la animación
+                        setTimeout(() => {
+                            document.getElementById('supplierForm').submit();
+                        }, 1000);
+                    }
+                });
+            }
+        });
+
+        // Confirmación para limpiar formulario con SweetAlert2
+        document.querySelector('button[type="reset"]').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            Swal.fire({
+                title: '¿Limpiar Formulario?',
+                text: 'Se perderán todos los datos ingresados',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#dc3545',
+                confirmButtonText: 'Sí, Limpiar',
+                cancelButtonText: 'Cancelar',
+                backdrop: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Limpiar formulario
+                    document.getElementById('supplierForm').reset();
+                    
+                    // Limpiar mensajes de error
+                    document.querySelectorAll('.error-message').forEach(error => {
+                        error.style.display = 'none';
+                    });
+                    
+                    // Restablecer bordes de los campos
+                    document.querySelectorAll('.form-input').forEach(input => {
+                        input.style.borderColor = '#e1e8ed';
+                    });
+                    
+                    toastr.info('Formulario limpiado correctamente', 'Éxito');
+                }
+            });
+        });
+
+    // Manejar el cierre de sesión con SweetAlert2
+    document.querySelector("a[href='{% url 'index' %}']").addEventListener("click", function(e) {
+        e.preventDefault();
+
+        Swal.fire({
+            title: '¿Cerrar Sesión?',
+            text: '¿Está seguro de que desea cerrar la sesión?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#667eea',
+            cancelButtonColor: '#dc3545',
+            confirmButtonText: 'Sí, Cerrar Sesión',
+            cancelButtonText: 'Cancelar',
+            backdrop: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "{% url 'index' %}";
+            }
+        });
+    });
+
+        // Mostrar notificación de carga cuando la página se esté recargando
+        window.addEventListener('beforeunload', function() {
+            toastr.info('Procesando solicitud...', 'Cargando');
+        });
+    </script>
+</body>
+</html>
