@@ -15,3 +15,5 @@ null/
 env/
 *.sqlite3
 *.sql
+staticfiles/
+media/
